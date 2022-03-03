@@ -1,4 +1,5 @@
 
+from tkinter import FALSE
 import shapely
 from shapely.geometry import LinearRing, LineString, Point, MultiLineString
 from numpy import sin, cos, pi, sqrt
@@ -74,9 +75,9 @@ def simulationstep():
 
 # SIMULATION LOOP
 # SENERE PROJEKT: lave 'log' over koordinater så vi kan gemme og se/plotte en specific robot iteration's rute senere
-plot = True
+plot = False
 f = open("coordinates.csv", "w")
-for cnt in range(1000):
+for cnt in range(20000):
     robot = LineString([(x-0.20,y-0.20), (x+0.20,y-0.20), (x+0.20,y+0.20), (x-0.20,y+0.20),(x-0.20,y-0.20)])
     ray_mid = LineString([(x, y), ((x+cos(q_mid)),(y+sin(q_mid)))])  # a line from robot to a point outside arena in direction of q
     ray_mid_left = LineString([(x, y), ((x+cos(q_mid_left)),(y+sin(q_mid_left)))])  
