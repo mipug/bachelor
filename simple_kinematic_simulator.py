@@ -50,45 +50,58 @@ left_wheel_velocity =  random()   # robot left wheel velocity in radians/s
 right_wheel_velocity =  random()  # robot right wheel velocity in radians/s
 
 
-
+q_all = [q_mid, q_mid_left, q_mid_right, q_left, q_right]
 
 
 # KINEMATIC MODEL
 # updates robot position and heading based on velocity of wheels and the elapsed time
 # the equations are a forward kinematic model of a two-wheeled robot - don't worry just use it
 def simulationstep():
-    global x, y, q_mid, q_mid_left, q_mid_right, q_left, q_right
+    global x, y, q_all#, q_mid, q_mid_left, q_mid_right, q_left, q_right
 
     for step in range(int(robot_timestep/simulation_timestep)):    #step model time/timestep times (0.1/0.1)
-        v_x = cos(q_mid)*(R*left_wheel_velocity/2 + R*right_wheel_velocity/2) 
-        v_y = sin(q_mid)*(R*left_wheel_velocity/2 + R*right_wheel_velocity/2)
+        v_x = cos(q_all[0])*(R*left_wheel_velocity/2 + R*right_wheel_velocity/2) 
+        v_y = sin(q_all[0])*(R*left_wheel_velocity/2 + R*right_wheel_velocity/2)
         omega = (R*right_wheel_velocity - R*left_wheel_velocity)/(2*L)  
         
 
         x += v_x * simulation_timestep
         y += v_y * simulation_timestep
-        q_mid += omega * simulation_timestep
-        q_mid_left += omega * simulation_timestep
-        q_mid_right += omega * simulation_timestep
-        q_left += omega * simulation_timestep
-        q_right += omega * simulation_timestep
+        print(q_all)
+        for i in range(len(q_all)): 
+            q_all[i] += omega * simulation_timestep
+            #print(q)
+        #q_mid += omega * simulation_timestep
+        #q_mid_left += omega * simulation_timestep
+        #q_mid_right += omega * simulation_timestep
+        #q_left += omega * simulation_timestep
+        #q_right += omega * simulation_timestep
+        print(q_all)
+        #return q_all
+
+def makeray(q):
+    ray = LineString([(x, y), ((x+cos(q)),(y+sin(q)))])
+    s = world.intersects(ray)
+    return ray, s
 
 # SIMULATION LOOP
 # SENERE PROJEKT: lave 'log' over koordinater så vi kan gemme og se/plotte en specific robot iteration's rute senere
-plot = False
+plot = True
 f = open("coordinates.csv", "w")
-for cnt in range(20000):
+for cnt in range(2000):
     robot = LineString([(x-0.20,y-0.20), (x+0.20,y-0.20), (x+0.20,y+0.20), (x-0.20,y+0.20),(x-0.20,y-0.20)])
-    ray_mid = LineString([(x, y), ((x+cos(q_mid)),(y+sin(q_mid)))])  # a line from robot to a point outside arena in direction of q
-    ray_mid_left = LineString([(x, y), ((x+cos(q_mid_left)),(y+sin(q_mid_left)))])  
-    ray_mid_right = LineString([(x, y), ((x+cos(q_mid_right)),(y+sin(q_mid_right)))])  
-    ray_left = LineString([(x, y), ((x+cos(q_left)),(y+sin(q_left)))])
-    ray_right = LineString([(x, y), ((x+cos(q_right)),(y+sin(q_right)))])
-    s_mid = world.intersects(ray_mid)
-    s_mid_left = world.intersects(ray_mid_left)
-    s_mid_right = world.intersects(ray_mid_right)
-    s_left = world.intersects(ray_left)
-    s_right = world.intersects(ray_right)
+
+
+    ray_mid, s_mid = makeray(q_all[0]) # a line from robot to a point outside arena in direction of q
+    ray_mid_left, s_mid_left = makeray(q_all[1]) 
+    ray_mid_right, s_mid_right = makeray(q_all[2]) 
+    ray_left, s_left = makeray(q_all[3]) 
+    ray_right, s_right = makeray(q_all[4]) 
+    #s_mid = world.intersects(ray_mid)
+    #s_mid_left = world.intersects(ray_mid_left)
+    #s_mid_right = world.intersects(ray_mid_right)
+    #s_left = world.intersects(ray_left)
+    #s_right = world.intersects(ray_right)
     #print(ray1.length)
     f.write(str(x) + ',' + str(y) + '\n')
 
@@ -101,11 +114,12 @@ for cnt in range(20000):
             for line in world:
                 plt.plot(*line.xy, color='black')
             plt.plot(*robot.xy, color='blue')
-            plt.plot(*ray_mid.xy, color='red', linestyle='dashed')
-            plt.plot(*ray_mid_left.xy, color='red', linestyle='dashed')
-            plt.plot(*ray_mid_right.xy, color='red', linestyle='dashed')
-            plt.plot(*ray_left.xy, color='red', linestyle='dashed')
-            plt.plot(*ray_right.xy, color='red', linestyle='dashed')
+            for r in [ray_mid, ray_mid_left, ray_mid_right, ray_left, ray_right]:
+                plt.plot(*r.xy, color='red', linestyle='dashed')
+            #plt.plot(*ray_mid_left.xy, color='red', linestyle='dashed')
+            #plt.plot(*ray_mid_right.xy, color='red', linestyle='dashed')
+            #plt.plot(*ray_left.xy, color='red', linestyle='dashed')
+            #plt.plot(*ray_right.xy, color='red', linestyle='dashed')
             print(cnt)
             plt.pause(0.1)
         
