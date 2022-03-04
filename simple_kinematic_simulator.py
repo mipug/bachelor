@@ -45,12 +45,16 @@ q_mid_left = 0.5
 q_mid_right = -0.5  # robot heading with respect to x-axis in radians 
 q_left = 1
 q_right = -1
+q_all = [q_mid, q_mid_left, q_mid_right, q_left, q_right]
 
 left_wheel_velocity =  random()   # robot left wheel velocity in radians/s
 right_wheel_velocity =  random()  # robot right wheel velocity in radians/s
 
+def makeray(q):
+    ray = LineString([(x, y), ((x+cos(q)),(y+sin(q)))])
+    s = world.intersects(ray)
+    return ray, s
 
-q_all = [q_mid, q_mid_left, q_mid_right, q_left, q_right]
 
 
 # KINEMATIC MODEL
@@ -67,28 +71,15 @@ def simulationstep():
 
         x += v_x * simulation_timestep
         y += v_y * simulation_timestep
-        print(q_all)
         for i in range(len(q_all)): 
             q_all[i] += omega * simulation_timestep
-            #print(q)
-        #q_mid += omega * simulation_timestep
-        #q_mid_left += omega * simulation_timestep
-        #q_mid_right += omega * simulation_timestep
-        #q_left += omega * simulation_timestep
-        #q_right += omega * simulation_timestep
-        print(q_all)
-        #return q_all
 
-def makeray(q):
-    ray = LineString([(x, y), ((x+cos(q)),(y+sin(q)))])
-    s = world.intersects(ray)
-    return ray, s
 
 # SIMULATION LOOP
 # SENERE PROJEKT: lave 'log' over koordinater så vi kan gemme og se/plotte en specific robot iteration's rute senere
 plot = True
 f = open("coordinates.csv", "w")
-for cnt in range(2000):
+for cnt in range(20000):
     robot = LineString([(x-0.20,y-0.20), (x+0.20,y-0.20), (x+0.20,y+0.20), (x-0.20,y+0.20),(x-0.20,y-0.20)])
 
 
@@ -97,12 +88,6 @@ for cnt in range(2000):
     ray_mid_right, s_mid_right = makeray(q_all[2]) 
     ray_left, s_left = makeray(q_all[3]) 
     ray_right, s_right = makeray(q_all[4]) 
-    #s_mid = world.intersects(ray_mid)
-    #s_mid_left = world.intersects(ray_mid_left)
-    #s_mid_right = world.intersects(ray_mid_right)
-    #s_left = world.intersects(ray_left)
-    #s_right = world.intersects(ray_right)
-    #print(ray1.length)
     f.write(str(x) + ',' + str(y) + '\n')
 
     # PLOT THE ROBOT
@@ -116,10 +101,6 @@ for cnt in range(2000):
             plt.plot(*robot.xy, color='blue')
             for r in [ray_mid, ray_mid_left, ray_mid_right, ray_left, ray_right]:
                 plt.plot(*r.xy, color='red', linestyle='dashed')
-            #plt.plot(*ray_mid_left.xy, color='red', linestyle='dashed')
-            #plt.plot(*ray_mid_right.xy, color='red', linestyle='dashed')
-            #plt.plot(*ray_left.xy, color='red', linestyle='dashed')
-            #plt.plot(*ray_right.xy, color='red', linestyle='dashed')
             print(cnt)
             plt.pause(0.1)
         
