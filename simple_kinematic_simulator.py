@@ -6,6 +6,7 @@ from numpy import sin, cos, pi, sqrt
 from random import random
 import matplotlib.pyplot as plt
 import math
+import numpy
 
 # A simulation of a differential-drive robot with x sensors
 
@@ -33,9 +34,6 @@ world = MultiLineString(walls)
 goal = Point(4,4)
 print(world)
 
-
-
-
 # VARIABLES
 
 x = -4.0   # robot position in meters - x direction - positive to the right 
@@ -51,8 +49,18 @@ left_wheel_velocity =  random()   # robot left wheel velocity in radians/s
 right_wheel_velocity =  random()  # robot right wheel velocity in radians/s
 
 def makeray(q):
-    ray = LineString([(x, y), ((x+cos(q)),(y+sin(q)))])
-    s = world.intersects(ray)
+    ray = LineString([(x, y), (x+cos(q)*4,y+sin(q)*4)])
+    #s = world.distance(ray)
+    s = 1000
+    for line in world:
+        intersect = ray.intersection(line)
+        try:
+            distance = sqrt((intersect.x-x)**2+(intersect.y-y)**2) 
+            if distance < s:
+                s = distance
+        except:
+            pass
+    print(s)
     return ray, s
 
 
@@ -79,7 +87,7 @@ def simulationstep():
 # SENERE PROJEKT: lave 'log' over koordinater så vi kan gemme og se/plotte en specific robot iteration's rute senere
 plot = True
 f = open("coordinates.csv", "w")
-for cnt in range(20000):
+for cnt in range(1000):
     robot = LineString([(x-0.20,y-0.20), (x+0.20,y-0.20), (x+0.20,y+0.20), (x-0.20,y+0.20),(x-0.20,y-0.20)])
 
 
@@ -105,26 +113,26 @@ for cnt in range(20000):
             plt.pause(0.1)
         
     #simple controller - change direction of wheels every 10 seconds (100*robot_timestep) unless close to wall then turn on spot
-    if (s_left == True): 
-        if ((s_mid == False) and (s_mid_left == False)): # Hvis væg på venstre side drej til højre of følg væggen
+    if (s_left <= 1): 
+        if ((s_mid >= 1) and (s_mid_left >= 1)): # Hvis væg på venstre side drej til højre of følg væggen
             # FORWARD
             left_wheel_velocity = 0.5
             right_wheel_velocity = 0.5
             print("ligeud")
         
         # Hvis robot er ved at ramme venstre væg drej til højre
-        if s_mid_left == True:
+        if s_mid_left <= 1:
             left_wheel_velocity = 0.5
             right_wheel_velocity = -0.5
             print("højre")
 
-    elif (s_mid == True): # Hvis væg lige foran robot, drej til højre
+    elif (s_mid <= 1): # Hvis væg lige foran robot, drej til højre
         # RIGHT
         left_wheel_velocity = 0.5
         right_wheel_velocity = -0.5
         print("højre")
     
-    elif (s_mid == s_mid_left == s_mid_right == s_left == s_right == False): # hvis ingen vægge, drej til venstre
+    elif (s_mid == s_mid_left == s_mid_right == s_left == s_right >= 1): # hvis ingen vægge, drej til venstre
         left_wheel_velocity = 0.5
         right_wheel_velocity = 0.65
         print("alt False")
@@ -152,11 +160,14 @@ for cnt in range(20000):
     if ((goal.distance(Point(x,y))<L/2)):
         print('WINNER')
         break
+
+### Neural net
+lr = 1
+bias = 1
+weights = [random() for i in range(6)] # 5 sensors and bias
+sensors = [s_mid, s_mid_left, s_left, s_mid_right, s_right] #distances
+
+
 f.close()
 if plot == True:
     plt.show()
-
-
-
-
-    
