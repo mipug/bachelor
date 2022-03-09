@@ -1,4 +1,3 @@
-
 from tkinter import FALSE
 import shapely
 from shapely.geometry import LinearRing, LineString, Point, MultiLineString
@@ -60,7 +59,7 @@ def makeray(q):
                 s = distance
         except:
             pass
-    #print(s)
+    print(s)
     return ray, s
 
 
@@ -83,11 +82,48 @@ def simulationstep():
             q_all[i] += omega * simulation_timestep
 
 
+
+input = 6 # 5 sensor + 1 bias
+hidden_size = 1
+output_size = 2
+
+
+def setParameters(X, Y, hidden_size):
+    np.random.seed(42)
+    input_size = X.shape[0] # number of neurons in input layer
+    output_size = Y.shape[0] # number of neurons in output layer.
+    W1 = np.random.random(size = (hidden_size, input_size))
+    b1 = np.zeros((hidden_size, 1))
+    W2 = np.random.random(size = (output_size, hidden_size))
+    b2 = np.zeros((output_size, 1))
+    return W1, b1, W2, b2
+
+
+def softmax(x):
+    return np.exp(x)/np.sum(np.exp(x))
+
+def forwardPropagation(X, W1, b1, W2, b2): 
+    Z1 = np.dot(W1, X) + b1
+    A1 = np.tanh(Z1) 
+    Z2 = np.dot(W2, A1) + b2
+    y = softmax(Z2) # tror ikke man skal bruge softmax
+
+    return y[0], y[1] 
+
+#def train_NN(train_input, train_output):
+
+
+X = np.array([1.33, 2.0, 1.1, 1.18, 1.21])
+Y = np.array([0.5, 0.5])
+
+W1, b1, W2, b2 = setParameters(X, Y, hidden_size)
 # SIMULATION LOOP
 # SENERE PROJEKT: lave 'log' over koordinater så vi kan gemme og se/plotte en specific robot iteration's rute senere
-plot = False
+
+
+plot = True
 f = open("coordinates.csv", "w")
-for cnt in range(1000):
+for cnt in range(100000):
     robot = LineString([(x-0.20,y-0.20), (x+0.20,y-0.20), (x+0.20,y+0.20), (x-0.20,y+0.20),(x-0.20,y-0.20)])
 
 
@@ -96,9 +132,11 @@ for cnt in range(1000):
     ray_mid_right, s_mid_right = makeray(q_all[2]) 
     ray_left, s_left = makeray(q_all[3]) 
     ray_right, s_right = makeray(q_all[4]) 
-    print(cnt, s_mid, s_mid_left, s_mid_right, s_left, s_right)
-
     f.write(str(x) + ',' + str(y) + '\n')
+
+    sensors = np.array([s_left, s_mid_left, s_mid, s_mid_right, s_right])
+
+    left_wheel_velocity, right_wheel_velocity = forwardPropagation(sensors, W1, b1, W2, b2)
 
     # PLOT THE ROBOT
     if plot == True:
@@ -111,64 +149,10 @@ for cnt in range(1000):
             plt.plot(*robot.xy, color='blue')
             for r in [ray_mid, ray_mid_left, ray_mid_right, ray_left, ray_right]:
                 plt.plot(*r.xy, color='red', linestyle='dashed')
-            #print(cnt)
+            print(cnt)
             plt.pause(0.1)
-        
-    #simple controller - change direction of wheels every 10 seconds (100*robot_timestep) unless close to wall then turn on spot
-    if (s_left <= 1): 
-        if ((s_mid >= 1) and (s_mid_left >= 1)): # Hvis væg på venstre side drej til højre of følg væggen
-            # FORWARD
-            left_wheel_velocity = 0.5
-            right_wheel_velocity = 0.5
-            print("ligeud", left_wheel_velocity, right_wheel_velocity)
-        
-        # Hvis robot er ved at ramme venstre væg drej til højre
-        if s_mid_left <= 1:
-            left_wheel_velocity = 0.5
-            right_wheel_velocity = -0.5
-            print("højre", left_wheel_velocity, right_wheel_velocity)
 
-    elif (s_mid <= 1): # Hvis væg lige foran robot, drej til højre
-        # RIGHT
-        left_wheel_velocity = 0.5
-        right_wheel_velocity = -0.5
-        print("højre", left_wheel_velocity, right_wheel_velocity)
-    
-    elif (s_mid == s_mid_left == s_mid_right == s_left == s_right >= 1): # hvis ingen vægge, drej til venstre
-        left_wheel_velocity = 0.5
-        right_wheel_velocity = 0.65
-        print("alt False", left_wheel_velocity, right_wheel_velocity)
-
-    else:   
-        left_wheel_velocity = 0.5
-        right_wheel_velocity = 0.5
-        print("hej", left_wheel_velocity, right_wheel_velocity)
-        
-    
-        """if cnt%100==0:
-            left_wheel_velocity = random()
-            right_wheel_velocity = random()"""
-    
-    """VORES ROBOT: Skal følge venstre væg/sensor
-    If distance_forward>0.5 AND distance_left < 0.5:
-    kør ligud. """
-        
-    #step simulation
     simulationstep()
-
-    #check collision with arena walls 
-    if (world.distance(Point(x,y))<L/2):
-        break
-    if ((goal.distance(Point(x,y))<L/2)):
-        print('WINNER')
-        break
-
-### Neural net
-lr = 1
-bias = 1
-weights = [random() for i in range(6)] # 5 sensors and bias
-sensors = [s_mid, s_mid_left, s_left, s_mid_right, s_right] #distances
-#print("w", weights)
 
 f.close()
 if plot == True:
