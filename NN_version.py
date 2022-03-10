@@ -118,7 +118,6 @@ Y = np.array([0.5, 0.5])
 
 W1, b1, W2, b2 = setParameters(X, Y, hidden_size)
 # SIMULATION LOOP
-# SENERE PROJEKT: lave 'log' over koordinater så vi kan gemme og se/plotte en specific robot iteration's rute senere
 
 
 plot = True
