@@ -85,9 +85,11 @@ def simulationstep():
 
 # SIMULATION LOOP
 # SENERE PROJEKT: lave 'log' over koordinater så vi kan gemme og se/plotte en specific robot iteration's rute senere
-plot = False
+plot = True
 f = open("coordinates.csv", "w")
-for cnt in range(1000):
+f_X = open("X_samples.csv", "w")
+f_Y = open("Y_samples.csv", "w")
+for cnt in range(10000):
     robot = LineString([(x-0.20,y-0.20), (x+0.20,y-0.20), (x+0.20,y+0.20), (x-0.20,y+0.20),(x-0.20,y-0.20)])
 
 
@@ -99,6 +101,7 @@ for cnt in range(1000):
     print(cnt, s_mid, s_mid_left, s_mid_right, s_left, s_right)
 
     f.write(str(x) + ',' + str(y) + '\n')
+    f_X.write(str(s_mid)+ ',' + str(s_mid_left) + ',' + str(s_mid_right) + ',' + str(s_left) + ',' + str(s_right)+ '\n')
 
     # PLOT THE ROBOT
     if plot == True:
@@ -134,14 +137,14 @@ for cnt in range(1000):
         right_wheel_velocity = -0.5
         print("højre", left_wheel_velocity, right_wheel_velocity)
     
-    elif (s_mid == s_mid_left == s_mid_right == s_left == s_right >= 1): # hvis ingen vægge, drej til venstre
+    elif ((s_mid >=1) and (s_mid_left>=1) and (s_mid_right>=1)  and (s_left >=1) and (s_right >= 1)): # hvis ingen vægge, drej til venstre
         left_wheel_velocity = 0.5
         right_wheel_velocity = 0.65
         print("alt False", left_wheel_velocity, right_wheel_velocity)
 
     else:   
         left_wheel_velocity = 0.5
-        right_wheel_velocity = 0.5
+        right_wheel_velocity = 0.65
         print("hej", left_wheel_velocity, right_wheel_velocity)
         
     
@@ -153,6 +156,7 @@ for cnt in range(1000):
     If distance_forward>0.5 AND distance_left < 0.5:
     kør ligud. """
         
+    f_Y.write(str(left_wheel_velocity) + ',' + str(right_wheel_velocity)+ '\n')
     #step simulation
     simulationstep()
 
@@ -171,5 +175,7 @@ sensors = [s_mid, s_mid_left, s_left, s_mid_right, s_right] #distances
 #print("w", weights)
 
 f.close()
+f_X.close()
+f_Y.close()
 if plot == True:
     plt.show()
