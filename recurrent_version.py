@@ -1,4 +1,3 @@
-from tkinter import FALSE
 import shapely
 from shapely.geometry import LinearRing, LineString, Point, MultiLineString
 from numpy import sin, cos, pi, sqrt, genfromtxt
@@ -84,14 +83,13 @@ def simulationstep():
 
 
 input = 6 # 5 sensor + 1 bias
-hidden_size = 1
-output_size = 2
+hidden_size = 2
 
 
 def setParameters(X1, Y1, hidden_size):
     np.random.seed(42)
     input_size = X1.shape[0] # number of neurons in input layer
-    output_size = Y1.shape[0] # number of neurons in output layer.
+    output_size = 1 #Y1.shape[0] # number of neurons in output layer.
     W1 = np.random.random(size = (hidden_size, input_size))
     b1 = np.zeros((hidden_size, 1))
     W2 = np.random.random(size = (output_size, hidden_size))
@@ -101,9 +99,6 @@ def setParameters(X1, Y1, hidden_size):
 
 def softmax(x):
     return np.exp(x)/np.sum(np.exp(x))
-    
-def sigmoid(x):
-    return (1 / (1 + np.exp(-x)))
 
 def forwardPropagation(X1, W1, b1, W2, b2): 
     Z1 = np.dot(W1, X1) + b1
@@ -111,51 +106,13 @@ def forwardPropagation(X1, W1, b1, W2, b2):
     A1 = np.tanh(Z1) 
     Z2 = np.dot(W2, A1) + b2
     print("Z2: ", Z2)
-    y1 = sigmoid(Z2) # tror ikke man skal bruge softmax
-
-    #return y[0], y[1] 
+    y1 = np.tanh(Z2) 
+    #skaler ouptut til at ligge mellem .25 og -.25
     return y1, A1
 
-
-def backPropagation(X1, Y1, W2, y1, A1):
-    m = X1.shape[1]
-    dy = y1 - Y1
-    dW2 = (1 / m) * np.dot(dy, np.transpose(A1))
-    db2 = (1 / m) * np.sum(dy, axis=1, keepdims=True)
-    dZ1 = np.dot(np.transpose(W2), dy) * (1-np.power(A1, 2))
-    dW1 = (1 / m) * np.dot(dZ1, np.transpose(X1))
-    db1 = (1 / m) * np.sum(dZ1, axis=1, keepdims=True)
-    return dW1, db1, dW2, db2
-
-def updateParameters(dW1, db1, dW2, db2, W1, b1, W2, b2, learning_rate = 0.1):
-    W1 = W1 - learning_rate * dW1
-    b1 = b1 - learning_rate * db1
-    W2 = W2 - learning_rate * dW2
-    b2 = b2- learning_rate * db2
-    return W1, W2, b1, b2 
-
-
-def fit(X1, Y1, learning_rate, hidden_size, number_of_iterations = 2000):
-    W1, b1, W2, b2 = setParameters(X1, Y1, hidden_size)
-    for j in range(number_of_iterations):
-        y1, A1 = forwardPropagation(X1, W1, b1, W2, b2)
-        dW1, db1, dW2, db2 = backPropagation(X1, Y1, W2, y1, A1)
-        W1, W2, b1, b2 = updateParameters(dW1, db1, dW2, db2, W1, b1, W2, b2, learning_rate)
-    return W1, W2, b1, b2
-
-
-#X1 = np.array([[1.5, 1.5, 1.2, 0.1, 0.2],
-             # [1.5, 1.5, 1.2, 0.1, 0.2]])
-#Y1 = np.array([[-0.5, 0.5],
-           #     [-0.5, 0.5]])
-X1 = np.array(np.loadtxt("X_samples.csv", delimiter = ',', dtype=float))
-
-Y1 = np.array(np.loadtxt("Y_samples.csv", delimiter = ',', dtype=float))
-
-X1, Y1 =  X1.T,Y1.reshape(2, Y1.shape[0])
-W1, W2, b1, b2 = fit(X1, Y1, 1.2, hidden_size)
-
-
+X1 = np.array([1.5, 1.5, 1.2, 0.1, 0.2])
+Y1 = np.array([0.5, -0.5])
+W1, b1, W2, b2 = setParameters(X1, Y1, hidden_size)
 
 # SIMULATION LOOP
 plot = True
@@ -176,7 +133,7 @@ for cnt in range(10000):
     #sensors = sensors.T
 
     y1, _ = forwardPropagation(sensors, W1, b1, W2, b2)
-    print(y1)
+    print('y1:', y1)
     left_wheel_velocity, right_wheel_velocity = y1[0], y1[1]
     print("left: ", cnt)
 
@@ -195,7 +152,7 @@ for cnt in range(10000):
             plt.pause(0.1)
 
     simulationstep()
-
+    print(x,y)
     if (world.distance(Point(x,y))<L/2):
         break
     if ((goal.distance(Point(x,y))<L/2)):

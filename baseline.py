@@ -49,7 +49,7 @@ left_wheel_velocity =  random()   # robot left wheel velocity in radians/s
 right_wheel_velocity =  random()  # robot right wheel velocity in radians/s
 
 def makeray(q):
-    ray = LineString([(x, y), (x+cos(q)*4,y+sin(q)*4)])
+    ray = LineString([(x, y), (x+cos(q)*10,y+sin(q)*10)])
     #s = world.distance(ray)
     s = 1000
     for line in world:
@@ -85,11 +85,11 @@ def simulationstep():
 
 # SIMULATION LOOP
 # SENERE PROJEKT: lave 'log' over koordinater så vi kan gemme og se/plotte en specific robot iteration's rute senere
-plot = True
+plot = False
 f = open("coordinates.csv", "w")
 f_X = open("X_samples.csv", "w")
 f_Y = open("Y_samples.csv", "w")
-for cnt in range(10000):
+for cnt in range(50000):
     robot = LineString([(x-0.20,y-0.20), (x+0.20,y-0.20), (x+0.20,y+0.20), (x-0.20,y+0.20),(x-0.20,y-0.20)])
 
 
