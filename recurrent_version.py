@@ -81,83 +81,142 @@ def simulationstep():
             q_all[i] += omega * simulation_timestep
 
 
+##NEURAL NET #################
+#X = np.array([1.5, 1.5, 1.2, 0.1, 0.2]) #sensor input
+#Y = # wheels
 
-input = 6 # 5 sensor + 1 bias
+input = 5 # 5 sensor + 1 bias
 hidden_size = 2
+popsize = 5
 
 
-def setParameters(X1, Y1, hidden_size):
-    np.random.seed(42)
-    input_size = X1.shape[0] # number of neurons in input layer
-    output_size = 1 #Y1.shape[0] # number of neurons in output layer.
-    W1 = np.random.random(size = (hidden_size, input_size))
-    b1 = np.zeros((hidden_size, 1))
-    W2 = np.random.random(size = (output_size, hidden_size))
-    b2 = np.zeros((output_size, 1))
-    return W1, b1, W2, b2
+
+def GenerateGenom(hidden_layer, W):
+    if W == 1:
+        Weight = np.random.random(size = (hidden_layer, 5)) #(hidden_neurons, input_size)
+    if W == 2:
+        Weight = np.random.random(size = (2, hidden_layer)) #(Output_neurons, hidden_neurons)
+    return Weight
+
+def InitializeGeneration(popsize, hidden_layer):
+    population_W1 = [GenerateGenom(hidden_layer,1) for i in range(popsize)]
+    population_W2 = [GenerateGenom(hidden_layer,2) for i in range(popsize)]
+    #print(population_W1)
+    #print(population_W1)
+    return population_W1, population_W2
+
+#def Mutate():
 
 
-def softmax(x):
-    return np.exp(x)/np.sum(np.exp(x))
 
-def forwardPropagation(X1, W1, b1, W2, b2): 
-    Z1 = np.dot(W1, X1) + b1
-    print("Z1: ", Z1)
+def Fitness(V, diff, i): # evaluates the robot at each step between 0 and 1
+    # V             -> average rotation speed -> (left_velocity + right_velocity) / 2
+    # 1-sqrt(v)     -> square root of the absolute value of the difference speed values -> sqrt of |(left_velocity-right_velocity)|
+    # i             -> i is the normalized value (0-1) of the closest distance to a wall -> if high distance then high value
+    fitness = V*(1-np.sqrt(diff))*i
+    return fitness
+
+
+def forwardPropagation(X, W1, W2): 
+
+    Z1 = np.dot(W1, X) #+ b1
     A1 = np.tanh(Z1) 
-    Z2 = np.dot(W2, A1) + b2
-    print("Z2: ", Z2)
-    y1 = np.tanh(Z2) 
-    #skaler ouptut til at ligge mellem .25 og -.25
-    return y1, A1
 
-X1 = np.array([1.5, 1.5, 1.2, 0.1, 0.2])
-Y1 = np.array([0.5, -0.5])
-W1, b1, W2, b2 = setParameters(X1, Y1, hidden_size)
+    Z2 = np.dot(W2, A1) #+ b2
+    Y = np.tanh(Z2) 
+    
+    """print("x1 :", X1 ,"dot W1: ", W1)
+    print("Z1: ", Z1)
+    print("Z2: ", Z2)
+    print("A1", A1)
+    #skaler ouptut til at ligge mellem .25 og -.25"""
+    return Y 
+
+
+def Normalize(closest):
+    # min = 0, max = 5 (sensor distance)
+    i = (closest - 0) / (5 - 0)
+    return i
+
 
 # SIMULATION LOOP
-plot = True
+plot = False
 f = open("coordinates.csv", "w")
-for cnt in range(10000):
-    robot = LineString([(x-0.20,y-0.20), (x+0.20,y-0.20), (x+0.20,y+0.20), (x-0.20,y+0.20),(x-0.20,y-0.20)])
 
 
-    ray_mid, s_mid = makeray(q_all[0]) # a line from robot to a point outside arena in direction of q
-    ray_mid_left, s_mid_left = makeray(q_all[1]) 
-    ray_mid_right, s_mid_right = makeray(q_all[2]) 
-    ray_left, s_left = makeray(q_all[3]) 
-    ray_right, s_right = makeray(q_all[4]) 
-    f.write(str(x) + ',' + str(y) + '\n')
+### FIRST GENERATION
+first_generation_W1, first_generation_W2 = InitializeGeneration(popsize, hidden_size) 
+#print('W1: ', first_generation_W1, '\n W2: ', first_generation_W2)
 
-    
-    sensors = np.array([s_left, s_mid_left, s_mid, s_mid_right, s_right])
-    #sensors = sensors.T
 
-    y1, _ = forwardPropagation(sensors, W1, b1, W2, b2)
-    print('y1:', y1)
-    left_wheel_velocity, right_wheel_velocity = y1[0], y1[1]
-    print("left: ", cnt)
+def Simulate(current_generation_W1, current_generation_W2):
+    gen_til = 0
+    fitness_generation = np.array([]) # collection of each robot's fitness
+    for W1, W2 in zip(current_generation_W1, current_generation_W2): # for every robot in the generation
+        print(W1, '\n', W2)
+        fitness_robot = np.array([]) # current robot's collection of fitness for each timestep
+        print(gen_til)
+        gen_til += 1
 
-    # PLOT THE ROBOT
-    if plot == True:
-        if cnt%100==0:
-            plt.figure(figsize =(5,5))
-            plt.xticks(range(-5,5))
-            plt.yticks(range(-5,5))
-            for line in world:
-                plt.plot(*line.xy, color='black')
-            plt.plot(*robot.xy, color='blue')
-            for r in [ray_mid, ray_mid_left, ray_mid_right, ray_left, ray_right]:
-                plt.plot(*r.xy, color='red', linestyle='dashed')
-            print(cnt)
-            plt.pause(0.1)
+        for cnt in range(10000):
+            robot = LineString([(x-0.20,y-0.20), (x+0.20,y-0.20), (x+0.20,y+0.20), (x-0.20,y+0.20),(x-0.20,y-0.20)])
 
-    simulationstep()
-    print(x,y)
-    if (world.distance(Point(x,y))<L/2):
-        break
-    if ((goal.distance(Point(x,y))<L/2)):
-        print('WINNER')
-        break
+            ray_mid, s_mid = makeray(q_all[0]) # a line from robot to a point outside arena in direction of q
+            ray_mid_left, s_mid_left = makeray(q_all[1]) 
+            ray_mid_right, s_mid_right = makeray(q_all[2]) 
+            ray_left, s_left = makeray(q_all[3]) 
+            ray_right, s_right = makeray(q_all[4]) 
+            f.write(str(x) + ',' + str(y) + '\n')
+
+            
+            
+            # X value and smallest sensor distance
+            sensors = np.array([s_left, s_mid_left, s_mid, s_mid_right, s_right]) # X value
+            closest = np.amin(sensors) # sensor closest to wall
+            if closest > 5: # define max value so that we can normalize and use in fitness function (maybe a better solution later)
+                closest = 5
+            
+            # new wheel velocity values
+            Y = forwardPropagation(sensors, W1, W2)
+            left_wheel_velocity, right_wheel_velocity = Y[0], Y[1]
+
+            # evaluation step
+            V = (left_wheel_velocity+right_wheel_velocity)/2
+            diff = np.absolute(left_wheel_velocity - right_wheel_velocity)
+            i = Normalize(closest)
+            fitness = Fitness(V, diff, i)
+            fitness_robot = np.append(fitness_robot, fitness)
+
+
+            #print("left: ", cnt)
+            # PLOT THE ROBOT
+            if plot == True:
+                if cnt%100==0:
+                    plt.figure(figsize =(5,5))
+                    plt.xticks(range(-5,5))
+                    plt.yticks(range(-5,5))
+                    for line in world:
+                        plt.plot(*line.xy, color='black')
+                    plt.plot(*robot.xy, color='blue')
+                    for r in [ray_mid, ray_mid_left, ray_mid_right, ray_left, ray_right]:
+                        plt.plot(*r.xy, color='red', linestyle='dashed')
+                    print(cnt)
+                    plt.pause(0.1)
+
+            simulationstep()
+            #print(x,y)
+            if (world.distance(Point(x,y))<L/2):
+                break
+            if ((goal.distance(Point(x,y))<L/2)):
+                print('WINNER')
+                break
+        fitness_robot = np.average(fitness_robot)
+        fitness_generation = np.append(fitness_generation, fitness_robot) 
+    return fitness_generation
+
+fitness_generation = Simulate(first_generation_W1, first_generation_W2)
+print(fitness_generation)
+
 f.close()
 if plot == True:
     plt.show()
