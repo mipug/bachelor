@@ -50,7 +50,7 @@ right_wheel_velocity =  random()  # robot right wheel velocity in radians/s
 def makeray(q):
     ray = LineString([(x, y), (x+cos(q)*10,y+sin(q)*10)])
     #s = world.distance(ray)
-    s = 1000
+    s = 10
     for line in world:
         intersect = ray.intersection(line)
         try:
@@ -87,7 +87,7 @@ def simulationstep():
 
 input = 5 # 5 sensor + 1 bias
 hidden_size = 2
-popsize = 5
+popsize = 18
 
 
 
@@ -105,8 +105,68 @@ def InitializeGeneration(popsize, hidden_layer):
     #print(population_W1)
     return population_W1, population_W2
 
-#def Mutate():
+def SelectTop(n, fitness, current_genW1, current_genW2):
+    best_robots = np.argsort(fitness)[-n:]
+    print('best fitness ',  fitness[best_robots])
+    
+    best_current_generation_W1 = [current_genW1[idx] for idx in best_robots]
+    best_current_generation_W2 = [current_genW2[idx] for idx in best_robots]
+    #print("best: ", best_current_generation_W1, best_current_generation_W2)
+    return best_current_generation_W1, best_current_generation_W2
+    
 
+def Mutate(robot_W1, robot_W2, n):
+    # rand,om int 0 or 1
+    # for each input robot, mutate it n times
+    # return the arrays of new weights
+    #print('OG robot: ', robot_W1, robot_W2)
+    new_robots_W1 = []
+    new_robots_W2 = []
+    
+    for i in range(n):
+        xxx = np.copy(robot_W1)
+        mat_pick = np.random.randint(2) #choose randomly if W1 or W2 should be mutated
+        #print("mat_pick: ", mat_pick)
+        if mat_pick == 0: 
+            for weight in range(xxx.shape[1]):
+                random = np.random.uniform(0,1)
+                #print("Weight: ", weight, "Random: ", random)
+                if random <= 0.3:
+                    #print("MUTATE!!!!")
+                    #print("OLD!: ", xxx[0, weight])
+                    xxx[0, weight] = np.random.uniform(0,1)
+                    xxx[1, weight] = np.random.uniform(0,1)
+                    #print("NEW!: ", xxx[0, weight])
+                
+            
+
+        xxx2 = np.copy(robot_W2)
+        if mat_pick == 1:
+            for weight in range(xxx2.shape[1]):
+                random = np.random.uniform(0,1)
+                
+                if random <= 0.4:
+                    #print("OLD!: ", xxx2[0, weight])
+                    xxx2[0, weight] = np.random.uniform(0,1)
+                    xxx2[1, weight] = np.random.uniform(0,1)
+                    #print("NEW: ", xxx2[0, weight])
+        new_robots_W1.append(xxx)
+        new_robots_W2.append(xxx2)
+    #print("new_robots: ", new_robots_W1, new_robots_W2)   
+    return new_robots_W1, new_robots_W2
+
+def NewGeneration(best_current_gen_W1, best_current_gen_W2, n):
+    print(best_current_gen_W1)
+    new_gen_W1 = []
+    new_gen_W2 = []
+    for W1, W2 in zip(best_current_gen_W1, best_current_gen_W2): #Generates a batch of n mutated robots for every 'best robot' selected in selectTop
+        print('hello')
+        n_new_W1, n_new_W2 = Mutate(W1, W2, n)
+        for W1, W2 in zip(n_new_W1, n_new_W2): # for every robot weigts in returned batch, append them to the list of the new generation
+            #print('Success??: ')
+            new_gen_W1.append(W1)
+            new_gen_W2.append(W2)
+    return new_gen_W1, new_gen_W2
 
 
 def Fitness(V, diff, i): # evaluates the robot at each step between 0 and 1
@@ -133,9 +193,9 @@ def forwardPropagation(X, W1, W2):
     return Y 
 
 
-def Normalize(closest):
+def Normalize(x, min, max):
     # min = 0, max = 5 (sensor distance)
-    i = (closest - 0) / (5 - 0)
+    i = (x - min) / (max - min)
     return i
 
 
@@ -149,16 +209,38 @@ first_generation_W1, first_generation_W2 = InitializeGeneration(popsize, hidden_
 #print('W1: ', first_generation_W1, '\n W2: ', first_generation_W2)
 
 
+
+def RunExperiment(depth, popsize, hidden_size):
+    #simulate the first initialized generation
+    first_generation_W1, first_generation_W2 = InitializeGeneration(popsize, hidden_size) 
+    fitness_generation = Simulate(first_generation_W1, first_generation_W2)
+    #print(fitness_generation)
+
+    cw1, cw2 = SelectTop(3, fitness_generation, first_generation_W1, first_generation_W2)
+    nw1, nw2 = NewGeneration(cw1, cw2, 5)
+    
+    # make new generations 'depth' number of times and run simulation on them
+    gen_depth = 1
+    for i in range(depth):
+        print('depth: ', gen_depth)
+        fitness_generation = Simulate(nw1, nw2)
+
+        cw1, cw2 = SelectTop(3, fitness_generation, first_generation_W1, first_generation_W2)
+        gen_depth += 1
+        nw1, nw2 = NewGeneration(cw1, cw2, 5)
+    #print(nw1, nw2)
+
+
 def Simulate(current_generation_W1, current_generation_W2):
-    gen_til = 0
+    robot_depth = 0
     fitness_generation = np.array([]) # collection of each robot's fitness
     for W1, W2 in zip(current_generation_W1, current_generation_W2): # for every robot in the generation
-        print(W1, '\n', W2)
+        #print(W1, '\n', W2)
         fitness_robot = np.array([]) # current robot's collection of fitness for each timestep
-        print(gen_til)
-        gen_til += 1
+        print('robot depth: ', robot_depth)
+        robot_depth += 1
 
-        for cnt in range(10000):
+        for cnt in range(1000):
             robot = LineString([(x-0.20,y-0.20), (x+0.20,y-0.20), (x+0.20,y+0.20), (x-0.20,y+0.20),(x-0.20,y-0.20)])
 
             ray_mid, s_mid = makeray(q_all[0]) # a line from robot to a point outside arena in direction of q
@@ -183,9 +265,9 @@ def Simulate(current_generation_W1, current_generation_W2):
             # evaluation step
             V = (left_wheel_velocity+right_wheel_velocity)/2
             diff = np.absolute(left_wheel_velocity - right_wheel_velocity)
-            i = Normalize(closest)
-            fitness = Fitness(V, diff, i)
-            fitness_robot = np.append(fitness_robot, fitness)
+            i = Normalize(closest, 0, 5)
+            fitness_timestep = Fitness(V, diff, i)
+            fitness_robot = np.append(fitness_robot, fitness_timestep)
 
 
             #print("left: ", cnt)
@@ -212,11 +294,10 @@ def Simulate(current_generation_W1, current_generation_W2):
                 break
         fitness_robot = np.average(fitness_robot)
         fitness_generation = np.append(fitness_generation, fitness_robot) 
+        if plot == True:
+            plt.show()
     return fitness_generation
 
-fitness_generation = Simulate(first_generation_W1, first_generation_W2)
-print(fitness_generation)
+RunExperiment(10, 15, 2)
 
 f.close()
-if plot == True:
-    plt.show()
