@@ -7,47 +7,6 @@ import matplotlib.pyplot as plt
 import math
 import numpy as np
 
-
-# A simulation of a differential-drive robot with x sensors
-
-# CONSTANTS
-
-R = 0.02  # radius of wheels in meters
-L = 0.10  # distance between wheels in meters
-
-W = 10.0  # width of arena
-H = 10.0  # height of arena
-
-robot_timestep = 0.1        # 1/robot_timestep (10) equals update frequency of robot
-simulation_timestep = 0.1  # timestep in kinematics simulation (probably don't touch..)
-
-# the world is a quadratic arena with width W and height H
-# it contains walls of various sizes and directions to create a maze environment
-walls = [
-        ((W/2,H/2),(-W/2,H/2),(-W/2,-H/2),(W/2,-H/2),(W/2,H/2)),
-        ((3,-5),(-3,-1)),
-        ((-1, 5), (-3, 2)), 
-        ((-1, -2.3), (1 , 0)),
-        ((5, 0), (3, -2)),
-        ((-2.0, 3.5), (1, 2))]
-world = MultiLineString(walls)
-goal = Point(4,4)
-
-
-# VARIABLES
-
-x = -4.0   # robot position in meters - x direction - positive to the right 
-y = 4.0   # robot position in meters - y direction - positive up
-q_mid = 0.0 
-q_mid_left = 0.5
-q_mid_right = -0.5  # robot heading with respect to x-axis in radians 
-q_left = 1
-q_right = -1
-q_all = [q_mid, q_mid_left, q_mid_right, q_left, q_right]
-
-left_wheel_velocity =  random()   # robot left wheel velocity in radians/s
-right_wheel_velocity =  random()  # robot right wheel velocity in radians/s
-
 def makeray(q):
     ray = LineString([(x, y), (x+cos(q)*10,y+sin(q)*10)])
     #s = world.distance(ray)
@@ -63,11 +22,6 @@ def makeray(q):
     #s = Normalize(s, 0, 10)
     return ray, s
 
-
-
-# KINEMATIC MODEL
-# updates robot position and heading based on velocity of wheels and the elapsed time
-# the equations are a forward kinematic model of a two-wheeled robot - don't worry just use it
 def simulationstep():
     global x, y, q_all#, q_mid, q_mid_left, q_mid_right, q_left, q_right
 
@@ -81,17 +35,6 @@ def simulationstep():
         y += v_y * simulation_timestep
         for i in range(len(q_all)): 
             q_all[i] += omega * simulation_timestep
-
-
-##NEURAL NET #################
-#X = np.array([1.5, 1.5, 1.2, 0.1, 0.2]) #sensor input
-#Y = # wheels
-
-input = 5 # 5 sensor + 1 bias
-hidden_size = 2
-popsize = 18
-
-
 
 def GenerateGenom(hidden_layer, W):
     if W == 1:
@@ -118,7 +61,7 @@ def SelectTop(n, fitness, current_genW1, current_genW2):
     best_current_generation_W2 = [current_genW2[idx] for idx in best_robots]
     #print("best: ", best_current_generation_W1, best_current_generation_W2)
     return best_current_generation_W1, best_current_generation_W2
-    
+
 
 def Mutate(robot_W1, robot_W2, n):
     # rand,om int 0 or 1
@@ -174,7 +117,6 @@ def NewGeneration(best_current_gen_W1, best_current_gen_W2, n):
             new_gen_W2.append(W2)
     return new_gen_W1, new_gen_W2
 
-
 def Fitness(left_wheel_velocity, right_wheel_velocity, closest): # evaluates the robot at each step between 0 and 1
     # V             -> average rotation speed -> (left_velocity + right_velocity) / 2
     # 1-sqrt(v)     -> square root of the absolute value of the difference speed values -> sqrt of |(left_velocity-right_velocity)|
@@ -187,7 +129,6 @@ def Fitness(left_wheel_velocity, right_wheel_velocity, closest): # evaluates the
 
     return fitness
 
-
 def forwardPropagation(X, W1, W2): 
 
     Z1 = np.dot(W1, X) #+ b1
@@ -198,23 +139,10 @@ def forwardPropagation(X, W1, W2):
     
     return Y 
 
-
 def Normalize(x, min, max):
     # min = 0, max = 5 (sensor distance)
     i = (x - min) / (max - min)
     return i
-
-
-# SIMULATION LOOP
-plot = False
-f = open("coordinates.csv", "w")
-s = open('fitness.csv', 'w')
-
-
-### FIRST GENERATION
-first_generation_W1, first_generation_W2 = InitializeGeneration(popsize, hidden_size) 
-
-
 
 def RunExperiment(depth, popsize, hidden_size):
     #simulate the first initialized generation
@@ -234,8 +162,6 @@ def RunExperiment(depth, popsize, hidden_size):
         cw1, cw2 = SelectTop(3, fitness_generation, nw1, nw2)
         gen_depth += 1
         nw1, nw2 = NewGeneration(cw1, cw2, 5)
-    #print(nw1, nw2)
-
 
 def Simulate(current_generation_W1, current_generation_W2):
     robot_depth = 0
@@ -309,7 +235,16 @@ def Simulate(current_generation_W1, current_generation_W2):
         if plot == True:
             plt.show()
     return fitness_generation
+    
 
-RunExperiment(depth = 10, popsize = popsize, hidden_size = hidden_size)
-s.close()
-f.close()
+
+
+
+
+
+
+
+
+
+
+
