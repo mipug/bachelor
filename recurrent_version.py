@@ -1,3 +1,4 @@
+from locale import normalize
 import shapely
 from shapely.geometry import LinearRing, LineString, Point, MultiLineString
 from numpy import sin, cos, pi, sqrt, genfromtxt
@@ -59,6 +60,7 @@ def makeray(q):
                 s = distance
         except:
             pass
+    #s = Normalize(s, 0, 10)
     return ray, s
 
 
@@ -254,10 +256,13 @@ def Simulate(current_generation_W1, current_generation_W2):
             
             # X value and smallest sensor distance
             sensors = np.array([s_left, s_mid_left, s_mid, s_mid_right, s_right]) # X value
+            #print("non-norm: ", sensors)
             closest = np.amin(sensors) # sensor closest to wall
-            if closest > 5: # define max value so that we can normalize and use in fitness function (maybe a better solution later)
-                closest = 5
-            
+            #if closest > 5: # define max value so that we can normalize and use in fitness function (maybe a better solution later)
+            #    closest = 5
+            for i in range(sensors.shape[0]): 
+                sensors[i] = Normalize(sensors[i], 0, 10)
+            #print("norm: ", sensors)
             # new wheel velocity values
             Y = forwardPropagation(sensors, W1, W2)
             left_wheel_velocity, right_wheel_velocity = Y[0], Y[1]
@@ -266,7 +271,7 @@ def Simulate(current_generation_W1, current_generation_W2):
             V = (left_wheel_velocity+right_wheel_velocity)/2
             diff = np.absolute(left_wheel_velocity - right_wheel_velocity)
             i = Normalize(closest, 0, 5)
-            fitness_timestep = Fitness(V, diff, i)
+            fitness_timestep = Fitness(V, diff, closest)
             fitness_robot = np.append(fitness_robot, fitness_timestep)
 
 
