@@ -6,8 +6,16 @@ from random import random
 import matplotlib.pyplot as plt
 import math
 import numpy as np
+from variables import *
 
-def makeray(q):
+q_mid = 0.0 
+q_mid_left = 0.5
+q_mid_right = -0.5  # robot heading with respect to x-axis in radians 
+q_left = 1
+q_right = -1 
+q_all= [q_mid, q_mid_left, q_mid_right, q_left, q_right]
+
+def makeray(q, x, y):
     ray = LineString([(x, y), (x+cos(q)*10,y+sin(q)*10)])
     #s = world.distance(ray)
     s = 10
@@ -61,7 +69,6 @@ def SelectTop(n, fitness, current_genW1, current_genW2):
     best_current_generation_W2 = [current_genW2[idx] for idx in best_robots]
     #print("best: ", best_current_generation_W1, best_current_generation_W2)
     return best_current_generation_W1, best_current_generation_W2
-
 
 def Mutate(robot_W1, robot_W2, n):
     # rand,om int 0 or 1
@@ -139,6 +146,9 @@ def forwardPropagation(X, W1, W2):
     
     return Y 
 
+def StartingPosition():
+    return -4, 4
+
 def Normalize(x, min, max):
     # min = 0, max = 5 (sensor distance)
     i = (x - min) / (max - min)
@@ -172,15 +182,17 @@ def Simulate(current_generation_W1, current_generation_W2):
         fitness_robot = np.array([]) # current robot's collection of fitness for each timestep
         print('robot depth: ', robot_depth)
         robot_depth += 1
+        x, y = StartingPosition()
 
         for cnt in range(5000):
+            
             robot = LineString([(x-0.20,y-0.20), (x+0.20,y-0.20), (x+0.20,y+0.20), (x-0.20,y+0.20),(x-0.20,y-0.20)])
 
-            ray_mid, s_mid = makeray(q_all[0]) # a line from robot to a point outside arena in direction of q
-            ray_mid_left, s_mid_left = makeray(q_all[1]) 
-            ray_mid_right, s_mid_right = makeray(q_all[2]) 
-            ray_left, s_left = makeray(q_all[3]) 
-            ray_right, s_right = makeray(q_all[4]) 
+            ray_mid, s_mid = makeray(q_all[0], x, y) # a line from robot to a point outside arena in direction of q
+            ray_mid_left, s_mid_left = makeray(q_all[1], x, y) 
+            ray_mid_right, s_mid_right = makeray(q_all[2], x, y) 
+            ray_left, s_left = makeray(q_all[3], x, y) 
+            ray_right, s_right = makeray(q_all[4], x, y) 
             f.write(str(x) + ',' + str(y) + '\n')
 
             

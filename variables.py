@@ -1,5 +1,11 @@
-from Functions import *
-
+from locale import normalize
+import shapely
+from shapely.geometry import LinearRing, LineString, Point, MultiLineString
+from numpy import sin, cos, pi, sqrt, genfromtxt
+from random import random
+import matplotlib.pyplot as plt
+import math
+import numpy as np
 # A simulation of a differential-drive robot with x sensors
 
 # CONSTANTS
@@ -27,8 +33,8 @@ goal = Point(4,4)
 
 # VARIABLES
 
-x = -4.0   # robot position in meters - x direction - positive to the right 
-y = 4.0   # robot position in meters - y direction - positive up
+#x = -4.0   # robot position in meters - x direction - positive to the right 
+#y = 4.0   # robot position in meters - y direction - positive up
 q_mid = 0.0 
 q_mid_left = 0.5
 q_mid_right = -0.5  # robot heading with respect to x-axis in radians 
@@ -43,14 +49,3 @@ right_wheel_velocity =  random()  # robot right wheel velocity in radians/s
 input = 5 # 5 sensor + 1 bias
 hidden_size = 2
 popsize = 18
-
-first_generation_W1, first_generation_W2 = InitializeGeneration(popsize, hidden_size) 
-
-plot = False
-f = open("coordinates.csv", "w")
-s = open('fitness.csv', 'w')
-
-
-RunExperiment(depth = 10, popsize = popsize, hidden_size = hidden_size)
-s.close()
-f.close()
