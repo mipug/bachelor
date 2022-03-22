@@ -2,7 +2,7 @@ from locale import normalize
 import shapely
 from shapely.geometry import LinearRing, LineString, Point, MultiLineString
 from numpy import sin, cos, pi, sqrt, genfromtxt
-from random import random
+import random #import random
 import matplotlib.pyplot as plt
 import math
 import numpy as np
@@ -36,8 +36,6 @@ goal = Point(4,4)
 
 # VARIABLES
 
-x = -4.0   # robot position in meters - x direction - positive to the right 
-y = 4.0   # robot position in meters - y direction - positive up
 q_mid = 0.0 
 q_mid_left = 0.5
 q_mid_right = -0.5  # robot heading with respect to x-axis in radians 
@@ -45,10 +43,23 @@ q_left = 1
 q_right = -1
 q_all = [q_mid, q_mid_left, q_mid_right, q_left, q_right]
 
-left_wheel_velocity =  random()   # robot left wheel velocity in radians/s
-right_wheel_velocity =  random()  # robot right wheel velocity in radians/s
+left_wheel_velocity =  random.random()   # robot left wheel velocity in radians/s
+right_wheel_velocity =  random.random()  # robot right wheel velocity in radians/s
 
-def makeray(q):
+def startPoint(): 
+    global x, y
+    start_List = [[-4.0, 4.0], [-1, -4], [-2, -2.2], [4, -1.3]]
+
+    new = random.choice(start_List)
+    print("Start: ", new)
+    x = new[0]   # robot position in meters - x direction - positive to the right 
+    y = new[1]  # robot position in meters - y direction - positive up
+    
+    #return x, y
+
+
+
+def makeray(q, x, y):
     ray = LineString([(x, y), (x+cos(q)*10,y+sin(q)*10)])
     #s = world.distance(ray)
     s = 10
@@ -84,20 +95,18 @@ def simulationstep():
 
 
 ##NEURAL NET #################
-#X = np.array([1.5, 1.5, 1.2, 0.1, 0.2]) #sensor input
-#Y = # wheels
 
 input = 5 # 5 sensor + 1 bias
 hidden_size = 2
-popsize = 18
+popsize = 30
 
 
 
 def GenerateGenom(hidden_layer, W):
     if W == 1:
-        Weight = np.random.random(size = (hidden_layer, 5)) #(hidden_neurons, input_size)
+        Weight = np.random.uniform(low = -5, high = 5, size = (hidden_layer, 5)) #(hidden_neurons, input_size)
     if W == 2:
-        Weight = np.random.random(size = (2, hidden_layer)) #(Output_neurons, hidden_neurons)
+        Weight = np.random.uniform(low = -5, high = 5, size = (2, hidden_layer)) #(Output_neurons, hidden_neurons)
     return Weight
 
 def InitializeGeneration(popsize, hidden_layer):
@@ -139,8 +148,8 @@ def Mutate(robot_W1, robot_W2, n):
                 if random <= 0.3:
                     #print("MUTATE!!!!")
                     #print("OLD!: ", xxx[0, weight])
-                    xxx[0, weight] = np.random.uniform(-3,3)
-                    xxx[1, weight] = np.random.uniform(-3,3)
+                    xxx[0, weight] = np.random.uniform(-5,5)
+                    xxx[1, weight] = np.random.uniform(-5,5)
                     #print("NEW!: ", xxx[0, weight])
                 
         xxx2 = np.copy(robot_W2)
@@ -150,8 +159,8 @@ def Mutate(robot_W1, robot_W2, n):
                 
                 if random <= 0.4:
                     #print("OLD!: ", xxx2[0, weight])
-                    xxx2[0, weight] = np.random.uniform(-3,3)
-                    xxx2[1, weight] = np.random.uniform(-3,3)
+                    xxx2[0, weight] = np.random.uniform(-5,5)
+                    xxx2[1, weight] = np.random.uniform(-5,5)
                     #print("NEW: ", xxx2[0, weight])
         new_robots_W1.append(xxx)
         new_robots_W2.append(xxx2)
@@ -179,12 +188,12 @@ def Fitness(left_wheel_velocity, right_wheel_velocity, closest): # evaluates the
     # V             -> average rotation speed -> (left_velocity + right_velocity) / 2
     # 1-sqrt(v)     -> square root of the absolute value of the difference speed values -> sqrt of |(left_velocity-right_velocity)|
     # i             -> i is the normalized value (0-1) of the closest distance to a wall -> if high distance then high value
-    V = Normalize(((left_wheel_velocity+right_wheel_velocity)/2), -1, 1)
-    diff = Normalize((np.absolute(left_wheel_velocity - right_wheel_velocity)), -0.5, 0.5)
-    i = Normalize(closest, 0, 5)
-
+    V = Normalize(((left_wheel_velocity+right_wheel_velocity)/2), -0.25, 0.25)
+    diff = Normalize((np.absolute(left_wheel_velocity - right_wheel_velocity)), 0, 0.5)
+    i = Normalize(closest, 0, 4)
+    #print("left: ", left_wheel_velocity, "right: ", right_wheel_velocity)
     fitness = V*(1-np.sqrt(diff))*i
-
+    #print("V: ", V, "norm_diff: ", diff,  "square ", np.sqrt(diff), "close: ", closest, "i: ", i, "fitness: ", fitness)
     return fitness
 
 
@@ -212,7 +221,7 @@ s = open('fitness.csv', 'w')
 
 
 ### FIRST GENERATION
-first_generation_W1, first_generation_W2 = InitializeGeneration(popsize, hidden_size) 
+#first_generation_W1, first_generation_W2 = InitializeGeneration(popsize, hidden_size) 
 
 
 
@@ -241,20 +250,23 @@ def Simulate(current_generation_W1, current_generation_W2):
     robot_depth = 0
     fitness_generation = np.array([]) # collection of each robot's fitness
     
+    
+    f = open("coordinates.csv", "w")
     for W1, W2 in zip(current_generation_W1, current_generation_W2): # for every robot in the generation
+        startPoint()
         #print(W1, '\n', W2)
         fitness_robot = np.array([]) # current robot's collection of fitness for each timestep
         print('robot depth: ', robot_depth)
         robot_depth += 1
-
-        for cnt in range(5000):
+        
+        for cnt in range(10000):
             robot = LineString([(x-0.20,y-0.20), (x+0.20,y-0.20), (x+0.20,y+0.20), (x-0.20,y+0.20),(x-0.20,y-0.20)])
 
-            ray_mid, s_mid = makeray(q_all[0]) # a line from robot to a point outside arena in direction of q
-            ray_mid_left, s_mid_left = makeray(q_all[1]) 
-            ray_mid_right, s_mid_right = makeray(q_all[2]) 
-            ray_left, s_left = makeray(q_all[3]) 
-            ray_right, s_right = makeray(q_all[4]) 
+            ray_mid, s_mid = makeray(q_all[0], x, y) # a line from robot to a point outside arena in direction of q
+            ray_mid_left, s_mid_left = makeray(q_all[1], x, y) 
+            ray_mid_right, s_mid_right = makeray(q_all[2], x, y) 
+            ray_left, s_left = makeray(q_all[3], x, y) 
+            ray_right, s_right = makeray(q_all[4], x, y) 
             f.write(str(x) + ',' + str(y) + '\n')
 
             
@@ -270,8 +282,11 @@ def Simulate(current_generation_W1, current_generation_W2):
             #print("norm: ", sensors)
             # new wheel velocity values
             Y = forwardPropagation(sensors, W1, W2)
-            y_norm_left = (0.25-(-0.25))*(Y[0]-0)+(-0.25)
-            y_norm_right = (0.25-(-0.25))*(Y[1]-0)+(-0.25)
+            #print("Y: ", Y)
+            #y_norm_left = (0.25-(-0.25))*(Y[0]-0)+(-0.25)
+            #y_norm_right = (0.25-(-0.25))*(Y[1]-0)+(-0.25)
+            y_norm_left = ((Y[0]-(-1))/(1-(-1)))*(0.25-(-0.25))+(-0.25) #range -0.25, 0.25
+            y_norm_right =((Y[1]-(-1))/(1-(-1)))*(0.25-(-0.25))+(-0.25)
             left_wheel_velocity, right_wheel_velocity = y_norm_left, y_norm_right
 
             #print("left + right: ", left_wheel_velocity, right_wheel_velocity)
@@ -308,8 +323,10 @@ def Simulate(current_generation_W1, current_generation_W2):
         fitness_generation = np.append(fitness_generation, fitness_avg) 
         if plot == True:
             plt.show()
+        
+        #
+    f.close()
     return fitness_generation
 
-RunExperiment(depth = 10, popsize = popsize, hidden_size = hidden_size)
+RunExperiment(depth = 5, popsize = popsize, hidden_size = hidden_size)
 s.close()
-f.close()
