@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import math
 import numpy as np
 
-
+np.random.seed(42)
 # A simulation of a differential-drive robot with x sensors
 
 # CONSTANTS
@@ -43,18 +43,21 @@ q_left = 1
 q_right = -1
 q_all = [q_mid, q_mid_left, q_mid_right, q_left, q_right]
 
-left_wheel_velocity =  random.random()   # robot left wheel velocity in radians/s
-right_wheel_velocity =  random.random()  # robot right wheel velocity in radians/s
+
 
 def startPoint(): 
-    global x, y
-    start_List = [[-4.0, 4.0], [-1, -4], [-2, -2.2], [4, -1.3]]
+    global x, y, left_wheel_velocity, right_wheel_velocity
+    start_List = [[-4.0, 4.0], [-4, -4], [-2, -2.2], [4, -1.8]]
 
     new = random.choice(start_List)
     print("Start: ", new)
     x = new[0]   # robot position in meters - x direction - positive to the right 
     y = new[1]  # robot position in meters - y direction - positive up
     
+    left_wheel_velocity =  random.random()   # robot left wheel velocity in radians/s
+    right_wheel_velocity =  random.random()  # robot right wheel velocity in radians/s
+
+    #return left_wheel_velocity, right_wheel_velocity
     #return x, y
 
 
@@ -71,6 +74,8 @@ def makeray(q, x, y):
                 s = distance
         except:
             pass
+    if s > 5:
+        s = 5
     #s = Normalize(s, 0, 10)
     return ray, s
 
@@ -79,7 +84,7 @@ def makeray(q, x, y):
 # KINEMATIC MODEL
 # updates robot position and heading based on velocity of wheels and the elapsed time
 # the equations are a forward kinematic model of a two-wheeled robot - don't worry just use it
-def simulationstep():
+def simulationstep(left_wheel_velocity, right_wheel_velocity):
     global x, y, q_all#, q_mid, q_mid_left, q_mid_right, q_left, q_right
 
     for step in range(int(robot_timestep/simulation_timestep)):    #step model time/timestep times (0.1/0.1)
@@ -92,13 +97,13 @@ def simulationstep():
         y += v_y * simulation_timestep
         for i in range(len(q_all)): 
             q_all[i] += omega * simulation_timestep
-
+    #print("Sim_left+right", left_wheel_velocity, right_wheel_velocity)
 
 ##NEURAL NET #################
 
 input = 5 # 5 sensor + 1 bias
 hidden_size = 2
-popsize = 30
+popsize = 20
 
 
 
@@ -188,9 +193,11 @@ def Fitness(left_wheel_velocity, right_wheel_velocity, closest): # evaluates the
     # V             -> average rotation speed -> (left_velocity + right_velocity) / 2
     # 1-sqrt(v)     -> square root of the absolute value of the difference speed values -> sqrt of |(left_velocity-right_velocity)|
     # i             -> i is the normalized value (0-1) of the closest distance to a wall -> if high distance then high value
+    if closest > 3: 
+        closest = 3
     V = Normalize(((left_wheel_velocity+right_wheel_velocity)/2), -0.25, 0.25)
     diff = Normalize((np.absolute(left_wheel_velocity - right_wheel_velocity)), 0, 0.5)
-    i = Normalize(closest, 0, 4)
+    i = Normalize(closest, 0, 3)
     #print("left: ", left_wheel_velocity, "right: ", right_wheel_velocity)
     fitness = V*(1-np.sqrt(diff))*i
     #print("V: ", V, "norm_diff: ", diff,  "square ", np.sqrt(diff), "close: ", closest, "i: ", i, "fitness: ", fitness)
@@ -200,10 +207,10 @@ def Fitness(left_wheel_velocity, right_wheel_velocity, closest): # evaluates the
 def forwardPropagation(X, W1, W2): 
 
     Z1 = np.dot(W1, X) #+ b1
-    A1 = np.tanh(Z1) 
+    A1 = sigmoid(Z1) 
 
     Z2 = np.dot(W2, A1) #+ b2
-    Y = np.tanh(Z2) 
+    Y = sigmoid(Z2) 
     
     return Y 
 
@@ -213,6 +220,8 @@ def Normalize(x, min, max):
     i = (x - min) / (max - min)
     return i
 
+def sigmoid(x):
+    return 1/(1 + np.exp(-x))
 
 # SIMULATION LOOP
 plot = False
@@ -232,7 +241,7 @@ def RunExperiment(depth, popsize, hidden_size):
     #print(fitness_generation)
 
     cw1, cw2 = SelectTop(3, fitness_generation, first_generation_W1, first_generation_W2)
-    nw1, nw2 = NewGeneration(cw1, cw2, 5)
+    nw1, nw2 = NewGeneration(cw1, cw2, int(popsize/3))
     
     # make new generations 'depth' number of times and run simulation on them
     gen_depth = 1
@@ -242,7 +251,7 @@ def RunExperiment(depth, popsize, hidden_size):
 
         cw1, cw2 = SelectTop(3, fitness_generation, nw1, nw2)
         gen_depth += 1
-        nw1, nw2 = NewGeneration(cw1, cw2, 5)
+        nw1, nw2 = NewGeneration(cw1, cw2, int(popsize/3))
     #print(nw1, nw2)
 
 
@@ -259,7 +268,7 @@ def Simulate(current_generation_W1, current_generation_W2):
         print('robot depth: ', robot_depth)
         robot_depth += 1
         
-        for cnt in range(10000):
+        for cnt in range(40000):
             robot = LineString([(x-0.20,y-0.20), (x+0.20,y-0.20), (x+0.20,y+0.20), (x-0.20,y+0.20),(x-0.20,y-0.20)])
 
             ray_mid, s_mid = makeray(q_all[0], x, y) # a line from robot to a point outside arena in direction of q
@@ -278,16 +287,19 @@ def Simulate(current_generation_W1, current_generation_W2):
             #if closest > 5: # define max value so that we can normalize and use in fitness function (maybe a better solution later)
             #    closest = 5
             for i in range(sensors.shape[0]): 
-                sensors[i] = Normalize(sensors[i], 0, 10)
+                sensors[i] = Normalize(sensors[i], 0, 5)
             #print("norm: ", sensors)
             # new wheel velocity values
             Y = forwardPropagation(sensors, W1, W2)
             #print("Y: ", Y)
             #y_norm_left = (0.25-(-0.25))*(Y[0]-0)+(-0.25)
             #y_norm_right = (0.25-(-0.25))*(Y[1]-0)+(-0.25)
-            y_norm_left = ((Y[0]-(-1))/(1-(-1)))*(0.25-(-0.25))+(-0.25) #range -0.25, 0.25
-            y_norm_right =((Y[1]-(-1))/(1-(-1)))*(0.25-(-0.25))+(-0.25)
+            #y_norm_left = ((Y[0]-(-1))/(1-(-1)))*(0.25-(-0.25))+(-0.25) #range -0.25, 0.25
+            #y_norm_right =((Y[1]-(-1))/(1-(-1)))*(0.25-(-0.25))+(-0.25)
+            y_norm_left = ((Y[0])/(1))*(0.25-(-0.25))+(-0.25) #range -0.25, 0.25
+            y_norm_right =((Y[1])/(1))*(0.25-(-0.25))+(-0.25)
             left_wheel_velocity, right_wheel_velocity = y_norm_left, y_norm_right
+            #print("ynorm: ", y_norm_left, y_norm_right)
 
             #print("left + right: ", left_wheel_velocity, right_wheel_velocity)
 
@@ -312,7 +324,7 @@ def Simulate(current_generation_W1, current_generation_W2):
                     print(cnt)
                     plt.pause(0.1)
 
-            simulationstep()
+            simulationstep(left_wheel_velocity, right_wheel_velocity)
             #print(x,y)
             if (world.distance(Point(x,y))<L/2):
                 break
@@ -321,6 +333,7 @@ def Simulate(current_generation_W1, current_generation_W2):
                 break
         fitness_avg = np.average(fitness_robot)
         fitness_generation = np.append(fitness_generation, fitness_avg) 
+        
         if plot == True:
             plt.show()
         
@@ -328,5 +341,5 @@ def Simulate(current_generation_W1, current_generation_W2):
     f.close()
     return fitness_generation
 
-RunExperiment(depth = 5, popsize = popsize, hidden_size = hidden_size)
+RunExperiment(depth = 100, popsize = popsize, hidden_size = hidden_size)
 s.close()
