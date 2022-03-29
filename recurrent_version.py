@@ -240,8 +240,8 @@ def RunExperiment(depth, popsize, hidden_size):
     fitness_generation = np.copy(Simulate(first_generation_W1, first_generation_W2))
     #print(fitness_generation)
 
-    cw1, cw2 = SelectTop(3, fitness_generation, first_generation_W1, first_generation_W2)
-    nw1, nw2 = NewGeneration(cw1, cw2, int(popsize/3))
+    cw1, cw2 = SelectTop(4, fitness_generation, first_generation_W1, first_generation_W2)
+    nw1, nw2 = NewGeneration(cw1, cw2, 4)
     
     # make new generations 'depth' number of times and run simulation on them
     gen_depth = 1
@@ -249,9 +249,9 @@ def RunExperiment(depth, popsize, hidden_size):
         print('depth: ', gen_depth)
         fitness_generation = np.copy(Simulate(nw1, nw2))
 
-        cw1, cw2 = SelectTop(3, fitness_generation, nw1, nw2)
+        cw1, cw2 = SelectTop(4, fitness_generation, nw1, nw2)
         gen_depth += 1
-        nw1, nw2 = NewGeneration(cw1, cw2, int(popsize/3))
+        nw1, nw2 = NewGeneration(cw1, cw2, 4)
     #print(nw1, nw2)
 
 
