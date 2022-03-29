@@ -342,5 +342,5 @@ def Simulate(current_generation_W1, current_generation_W2):
     f.close()
     return fitness_generation
 
-RunExperiment(depth = 100, popsize = popsize, hidden_size = hidden_size)
+RunExperiment(depth = 10, popsize = popsize, hidden_size = hidden_size)
 s.close()
