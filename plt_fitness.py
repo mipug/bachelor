@@ -1,6 +1,10 @@
 import matplotlib.pyplot as plt
 import csv
 from shapely.geometry import MultiLineString
+import numpy as np
+import pylab
+import seaborn as sns
+import pandas as pd
 
 W = 10.0  # width of arena
 H = 10.0  # height of arena
@@ -18,18 +22,29 @@ y = []
   
 with open('fitness.csv','r') as csvfile:
     plots = csv.reader(csvfile, delimiter = ',')
-      
-    for row in plots:
-        x.append(float(row[0]))
-        y.append(float(row[1]))
-  
+    for row, gen in zip(plots, range(100)):
+        x.append(gen)
+        #y.append((float(row[0]) + float(row[1]) + float(row[2]))/3)
+        row = [float(i) for i in row]
+        y.append(max(row))
+      #  for i in row:
+       #     y.append(int(i))
+    #print(x, y)
 
+d = {'gen': x, 'fitness': y}
+df = pd.DataFrame(d)
 
-plt.xlim([-5,5])
-plt.ylim([-5,5])
-for line in world:
-    plt.plot(*line.xy, color='black')     
-plt.scatter(x, y)
-plt.title('Ages of different persons')
-plt.legend()
+sns.regplot(x='gen', y='fitness', data=df,
+           order=2, ci=None)
 plt.show()
+
+"""
+plt.xlim([0,100])
+plt.ylim([0.2,0.7])  
+plt.scatter(x, y)
+z = np.polyfit(x, y, 1)
+p = np.poly1d(z)
+pylab.plot(x,p(x),"r--")
+plt.title('Fitness')
+plt.legend()
+plt.show()"""

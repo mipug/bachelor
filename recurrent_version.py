@@ -125,7 +125,8 @@ def SelectTop(n, fitness, current_genW1, current_genW2):
     best_robots = np.argsort(fitness)[-n:]
     print('best fitness ',  fitness[best_robots])
     print("Fitness all: ", fitness)
-    s.write(str(fitness[best_robots]) + '\n')
+    
+    s.write(str(fitness[best_robots[0]]) + ',' str(fitness[best_robots[1]]), ',', str(fitness[best_robots[1]]) '\n')
     
     best_current_generation_W1 = [current_genW1[idx] for idx in best_robots]
     print("Selected best: ", best_current_generation_W1)
@@ -153,8 +154,8 @@ def Mutate(robot_W1, robot_W2, n):
                 if random <= 0.3:
                     #print("MUTATE!!!!")
                     #print("OLD!: ", xxx[0, weight])
-                    xxx[0, weight] = np.random.uniform(-5,5)
-                    xxx[1, weight] = np.random.uniform(-5,5)
+                    xxx[0, weight] = np.random.uniform(-2,2)
+                    xxx[1, weight] = np.random.uniform(-2,2)
                     #print("NEW!: ", xxx[0, weight])
                 
         xxx2 = np.copy(robot_W2)
@@ -164,8 +165,8 @@ def Mutate(robot_W1, robot_W2, n):
                 
                 if random <= 0.4:
                     #print("OLD!: ", xxx2[0, weight])
-                    xxx2[0, weight] = np.random.uniform(-5,5)
-                    xxx2[1, weight] = np.random.uniform(-5,5)
+                    xxx2[0, weight] = np.random.uniform(-2,2)
+                    xxx2[1, weight] = np.random.uniform(-2,2)
                     #print("NEW: ", xxx2[0, weight])
         new_robots_W1.append(xxx)
         new_robots_W2.append(xxx2)
