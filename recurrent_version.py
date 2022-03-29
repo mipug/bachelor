@@ -103,7 +103,7 @@ def simulationstep(left_wheel_velocity, right_wheel_velocity):
 
 input = 5 # 5 sensor + 1 bias
 hidden_size = 2
-popsize = 20
+popsize = 25
 
 
 
@@ -126,7 +126,7 @@ def SelectTop(n, fitness, current_genW1, current_genW2):
     print('best fitness ',  fitness[best_robots])
     print("Fitness all: ", fitness)
     
-    s.write(str(fitness[best_robots[0]]) + ',' str(fitness[best_robots[1]]), ',', str(fitness[best_robots[1]]) '\n')
+    s.write(str(fitness[best_robots[0]]) + ',' str(fitness[best_robots[1]]), ',', str(fitness[best_robots[2]]), ',', str(fitness[best_robots[3]], ',', str(fitness[best_robots[4]], '\n')
     
     best_current_generation_W1 = [current_genW1[idx] for idx in best_robots]
     print("Selected best: ", best_current_generation_W1)
@@ -241,8 +241,8 @@ def RunExperiment(depth, popsize, hidden_size):
     fitness_generation = np.copy(Simulate(first_generation_W1, first_generation_W2))
     #print(fitness_generation)
 
-    cw1, cw2 = SelectTop(4, fitness_generation, first_generation_W1, first_generation_W2)
-    nw1, nw2 = NewGeneration(cw1, cw2, 4)
+    cw1, cw2 = SelectTop(5, fitness_generation, first_generation_W1, first_generation_W2)
+    nw1, nw2 = NewGeneration(cw1, cw2, 5)
     
     # make new generations 'depth' number of times and run simulation on them
     gen_depth = 1
@@ -250,9 +250,9 @@ def RunExperiment(depth, popsize, hidden_size):
         print('depth: ', gen_depth)
         fitness_generation = np.copy(Simulate(nw1, nw2))
 
-        cw1, cw2 = SelectTop(4, fitness_generation, nw1, nw2)
+        cw1, cw2 = SelectTop(5, fitness_generation, nw1, nw2)
         gen_depth += 1
-        nw1, nw2 = NewGeneration(cw1, cw2, 4)
+        nw1, nw2 = NewGeneration(cw1, cw2, 5)
     #print(nw1, nw2)
 
 
