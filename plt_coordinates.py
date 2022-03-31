@@ -11,12 +11,13 @@ walls = [
         ((-1, -2.3), (1 , 0)),
         ((5, 0), (3, -2)),
         ((-2.0, 3.5), (1, 2))]
+
 world = MultiLineString(walls)
 
 x = []
 y = []
   
-with open('coordinates_g.csv','r') as csvfile:
+with open('coordinates.csv','r') as csvfile:
     plots = csv.reader(csvfile, delimiter = ',')
       
     for row in plots:

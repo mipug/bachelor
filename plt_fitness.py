@@ -20,7 +20,7 @@ world = MultiLineString(walls)
 x = []
 y = []
   
-with open('fitness.csv','r') as csvfile:
+with open('fitness_g60_p21_s40000_w5_wheels0.5.csv','r') as csvfile:
     plots = csv.reader(csvfile, delimiter = ',')
     for row, gen in zip(plots, range(100)):
         x.append(gen)

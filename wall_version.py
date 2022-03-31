@@ -119,8 +119,6 @@ def GenerateGenom(hidden_layer, W):
 def InitializeGeneration(popsize, hidden_layer):
     population_W1 = [GenerateGenom(hidden_layer,1) for i in range(popsize)]
     population_W2 = [GenerateGenom(hidden_layer,2) for i in range(popsize)]
-    #print(population_W1)
-    #print(population_W1)
     return population_W1, population_W2
 
 
@@ -227,15 +225,14 @@ def RunExperiment(depth, popsize, hidden_size):
 
 
 # SIMULATION LOOP
-f = open("coordinates.csv", "w")
-s = open('fitness.csv', 'w')
+s = open('fitness_g60_p21_s40000_w5_wheels0.5.csv', 'w')
 
 def Simulate(current_generation_W1, current_generation_W2):
     robot_depth = 0
     fitness_generation = np.array([]) # collection of each robot's fitness
     
     
-    f = open("coordinates.csv", "w")
+    f = open("coordinates_g60_p21_s40000_w5_wheels0.5.csv", "w")
     for W1, W2 in zip(current_generation_W1, current_generation_W2): # for every robot in the generation
         startPoint()
         fitness_robot = np.array([]) # current robot's collection of fitness for each timestep
@@ -259,8 +256,8 @@ def Simulate(current_generation_W1, current_generation_W2):
             # new wheel velocity values
             Y = forwardPropagation(sensors, W1, W2)
             
-            y_norm_left = ((Y[0])/(1))*(0.25-(-0.25))+(-0.25) #range -0.25, 0.25
-            y_norm_right =((Y[1])/(1))*(0.25-(-0.25))+(-0.25)
+            y_norm_left = ((Y[0])/(1))*(0.5-(-0.5))+(-0.5) #range -0.25, 0.25
+            y_norm_right =((Y[1])/(1))*(0.5-(-0.5))+(-0.5)
             left_wheel_velocity, right_wheel_velocity = y_norm_left, y_norm_right
 
             # evaluation step
@@ -283,5 +280,5 @@ def Simulate(current_generation_W1, current_generation_W2):
     return fitness_generation
 
 
-RunExperiment(depth = 100, popsize = popsize, hidden_size = hidden_size)
+RunExperiment(depth = 60, popsize = popsize, hidden_size = hidden_size)
 s.close()
