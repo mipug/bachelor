@@ -16,7 +16,7 @@ world = MultiLineString(walls)
 x = []
 y = []
   
-with open('coordinates.csv','r') as csvfile:
+with open('coordinates_g.csv','r') as csvfile:
     plots = csv.reader(csvfile, delimiter = ',')
       
     for row in plots:
@@ -24,12 +24,12 @@ with open('coordinates.csv','r') as csvfile:
         y.append(float(row[1]))
   
 
-
+s = [0.5 for i in range(len(x))]
 plt.xlim([-5,5])
 plt.ylim([-5,5])
 for line in world:
     plt.plot(*line.xy, color='black')     
-plt.scatter(x, y)
+plt.scatter(x, y, s=s)
 plt.title('Ages of different persons')
 plt.legend()
 plt.show()
