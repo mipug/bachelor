@@ -5,6 +5,7 @@ import numpy as np
 import pylab
 import seaborn as sns
 import pandas as pd
+import filenames
 
 W = 10.0  # width of arena
 H = 10.0  # height of arena
@@ -20,22 +21,21 @@ world = MultiLineString(walls)
 x = []
 y = []
   
-with open('fitness_g60_p21_s40000_w5_wheels0.5.csv','r') as csvfile:
+with open(filenames.fitness_file,'r') as csvfile:
     plots = csv.reader(csvfile, delimiter = ',')
     for row, gen in zip(plots, range(100)):
         x.append(gen)
-        #y.append((float(row[0]) + float(row[1]) + float(row[2]))/3)
         row = [float(i) for i in row]
-        y.append(max(row))
-      #  for i in row:
-       #     y.append(int(i))
-    #print(x, y)
+        y.append(np.average(row))
 
-d = {'gen': x, 'fitness': y}
+d = {'Generation': x, 'Fitness': y}
 df = pd.DataFrame(d)
 
-sns.regplot(x='gen', y='fitness', data=df,
-           order=2, ci=None)
+
+
+sns.set_theme()
+sns.regplot(x='Generation', y='Fitness', data=df,
+           order=2, ci=None).set(title='Avg Fitness Top 3 ')           
 plt.show()
 
 """

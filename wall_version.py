@@ -6,6 +6,7 @@ import random #import random
 import matplotlib.pyplot as plt
 import math
 import numpy as np
+import filenames
 
 np.random.seed(42)
 
@@ -57,8 +58,8 @@ def startPoint():
     x = new[0]   # robot position in meters - x direction - positive to the right 
     y = new[1]  # robot position in meters - y direction - positive up
     
-    left_wheel_velocity =  np.random.uniform(-0.25, 0.25)   # robot left wheel velocity in radians/s
-    right_wheel_velocity =  np.random.uniform(-0.25, 0.25)  # robot right wheel velocity in radians/s
+    left_wheel_velocity =  np.random.uniform(-0.5, 0.5)   # robot left wheel velocity in radians/s
+    right_wheel_velocity =  np.random.uniform(-0.5, 0.5)  # robot right wheel velocity in radians/s
 
 def makeray(q, x, y):
     ray = LineString([(x, y), (x+cos(q)*10,y+sin(q)*10)])
@@ -131,8 +132,8 @@ def Fitness(left_wheel_velocity, right_wheel_velocity, closest): # evaluates the
     if closest > 3: 
         closest = 3
 
-    V = Normalize(((left_wheel_velocity+right_wheel_velocity)/2), -0.25, 0.25)
-    diff = Normalize((np.absolute(left_wheel_velocity - right_wheel_velocity)), 0, 0.5)
+    V = Normalize(((left_wheel_velocity+right_wheel_velocity)/2), -0.5, 0.5)
+    diff = Normalize((np.absolute(left_wheel_velocity - right_wheel_velocity)), 0, 1)
     i = Normalize(closest, 0, 3)
     
     fitness = V*(1-np.sqrt(diff))*i
@@ -140,13 +141,13 @@ def Fitness(left_wheel_velocity, right_wheel_velocity, closest): # evaluates the
 
 def SelectTop(n, fitness, current_genW1, current_genW2):
     best_robots = np.argsort(fitness)[-n:]
-    print('best fitness ',  fitness[best_robots])
-    print("Fitness all: ", fitness)
+    print('Best fitness: \n ',  fitness[best_robots])
+    print("Fitness all:  \n", fitness)
     
     s.write(str(fitness[best_robots[0]]) + ',' + str(fitness[best_robots[1]]) + ',' + str(fitness[best_robots[2]]) + '\n')
     
     best_current_generation_W1 = [current_genW1[idx] for idx in best_robots]
-    print("Selected best: ", best_current_generation_W1)
+    #print("Selected best: ", best_current_generation_W1)
     best_current_generation_W2 = [current_genW2[idx] for idx in best_robots]
     return best_current_generation_W1, best_current_generation_W2
 
@@ -167,9 +168,9 @@ def Mutate(robot_W1, robot_W2, n):
             for weight in range(xxx.shape[1]):
                 random0 = np.random.uniform(0,1)
                 random1 = np.random.uniform(0,1)
-                if random0 <= 0.4:      
+                if random0 <= 0.7:      
                     xxx[0, weight] = np.random.uniform(-5,5)
-                if random1 <= 0.4:
+                if random1 <= 0.7:
                     xxx[1, weight] = np.random.uniform(-5,5)
                 
         xxx2 = np.copy(robot_W2)
@@ -177,9 +178,9 @@ def Mutate(robot_W1, robot_W2, n):
             for weight in range(xxx2.shape[1]):
                 random0 = np.random.uniform(0,1)
                 random1 = np.random.uniform(0,1)
-                if random0 <= 0.4:
+                if random0 <= 0.7:
                     xxx2[0, weight] = np.random.uniform(-5,5)
-                if random1 <= 0.4:
+                if random1 <= 0.7:
                     xxx2[1, weight] = np.random.uniform(-5,5)
                     
         new_robots_W1.append(xxx)
@@ -187,7 +188,6 @@ def Mutate(robot_W1, robot_W2, n):
     return new_robots_W1, new_robots_W2
 
 def NewGeneration(best_current_gen_W1, best_current_gen_W2, n):
-    print("same?", best_current_gen_W1)
     new_gen_W1 = []
     new_gen_W2 = []
     for W1, W2 in zip(best_current_gen_W1, best_current_gen_W2): #Generates a batch of n mutated robots for every 'best robot' selected in selectTop
@@ -196,7 +196,6 @@ def NewGeneration(best_current_gen_W1, best_current_gen_W2, n):
         n_new_W1, n_new_W2 = Mutate(W1, W2, n)
         
         for W1, W2 in zip(n_new_W1, n_new_W2): # for every robot weigts in returned batch, append them to the list of the new generation
-            #print('Success??: ')
             new_gen_W1.append(W1)
             new_gen_W2.append(W2)
     return new_gen_W1, new_gen_W2
@@ -215,7 +214,7 @@ def RunExperiment(depth, popsize, hidden_size):
     # make new generations 'depth' number of times and run simulation on them
     gen_depth = 1
     for i in range(depth):
-        print('depth: ', gen_depth)
+        print('depth: ', gen_depth, '\n')
         fitness_generation = np.copy(Simulate(nw1, nw2))
 
         cw1, cw2 = SelectTop(3, fitness_generation, nw1, nw2)
@@ -225,14 +224,14 @@ def RunExperiment(depth, popsize, hidden_size):
 
 
 # SIMULATION LOOP
-s = open('fitness_g60_p21_s40000_w5_wheels0.5.csv', 'w')
+s = open(filenames.wall_fitness, 'w')
 
 def Simulate(current_generation_W1, current_generation_W2):
     robot_depth = 0
     fitness_generation = np.array([]) # collection of each robot's fitness
     
     
-    f = open("coordinates_g60_p21_s40000_w5_wheels0.5.csv", "w")
+    f = open(filenames.wall_coordinates, "w")
     for W1, W2 in zip(current_generation_W1, current_generation_W2): # for every robot in the generation
         startPoint()
         fitness_robot = np.array([]) # current robot's collection of fitness for each timestep
@@ -275,10 +274,11 @@ def Simulate(current_generation_W1, current_generation_W2):
                 break
         fitness_avg = np.average(fitness_robot)
         fitness_generation = np.append(fitness_generation, fitness_avg) 
+        f.write('new\n')
         
     f.close()
     return fitness_generation
 
 
-RunExperiment(depth = 60, popsize = popsize, hidden_size = hidden_size)
+RunExperiment(depth = 0, popsize = popsize, hidden_size = hidden_size)
 s.close()

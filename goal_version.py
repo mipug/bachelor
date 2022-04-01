@@ -6,6 +6,7 @@ import random #import random
 import matplotlib.pyplot as plt
 import math
 import numpy as np
+import filenames
 
 np.random.seed(42)
 
@@ -215,14 +216,14 @@ def RunExperiment(depth, popsize, hidden_size):
 
 
 # SIMULATION LOOP
-s = open('fitness_g.csv', 'w')
+s = open(filenames.goal_fitness, 'w')
 
 def Simulate(current_generation_W1, current_generation_W2):
     robot_depth = 0
     fitness_generation = np.array([]) # collection of each robot's fitness
     
     
-    f = open("coordinates_g.csv", "w")
+    f = open(filenames.goal_coordinates, "w")
     for W1, W2 in zip(current_generation_W1, current_generation_W2): # for every robot in the generation
         startPoint()
         fitness_robot = np.array([]) # current robot's collection of fitness for each timestep
