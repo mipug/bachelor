@@ -1,10 +1,10 @@
 #import plt_fitness
-#import plt_coordinates
+import plt_coordinates
 
 
-## ENTER THE VERSION YOU WNT TO PLOT
-version = 'wall'
-ID = 'a'
+## ENTER THE VERSION YOU WANT TO PLOT
+version = 'wall'  
+ID = 'c'
 
 ## plt files
 fitness_file = version + '_fitness/' + ID + '_fitness.csv'
