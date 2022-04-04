@@ -23,7 +23,7 @@ with open(filenames.coordinate_file,'r') as csvfile:
     plots = csv.reader(csvfile, delimiter = ',')
       
     for row in plots:
-        if row[0] == 'new ':
+        if row[0] == 'new':
             i += 1 
             continue
         x.append(float(row[0]))
