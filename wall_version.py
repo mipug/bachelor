@@ -154,6 +154,7 @@ def SelectTop(n, fitness, current_genW1, current_genW2):
 
 # NEW GENERATION
 
+
 def Mutate(robot_W1, robot_W2, n):
     # rand,om int 0 or 1
     # for each input robot, mutate it n times
