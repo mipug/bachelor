@@ -1,10 +1,10 @@
-#import plt_fitness
+import plt_fitness
 #import plt_coordinates
 
 
 ## ENTER THE VERSION YOU WANT TO PLOT
 version = 'wall'  
-ID = 'c'
+ID = '02'
 
 ## plt files
 fitness_file = version + '_fitness/' + ID + '_fitness.csv'
@@ -17,9 +17,9 @@ coordinate_file = 'c_test_crossover_2.csv'
 ## ENTER WHAT YOU WANT TO NAME THE NEW VARIATION
 
 ## wall_version files
-wall_fitness = 'f_test_crossover_2.csv'
-wall_coordinates = 'c_test_crossover_2.csv'
+wall_fitness = '02_fitness.csv'
+wall_coordinates = '02_coordinates.csv'
 
 ## goal_version files
-goal_fitness = ''
-goal_coordinates = ''
+goal_fitness = 'f_test.csv'
+goal_coordinates = 'c_test.csv'

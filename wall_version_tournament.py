@@ -45,7 +45,7 @@ q_all = [q_mid, q_mid_left, q_mid_right, q_left, q_right]
 input = 5 # 5 sensor + 1 bias
 hidden_size = 2
 popsize = 23
-Crossover = True
+Crossover = False
 
 
 # FUNCTIONS

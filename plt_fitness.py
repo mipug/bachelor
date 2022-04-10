@@ -33,7 +33,7 @@ df = pd.DataFrame(d)
 
 
 
-sns.set_theme()
+#sns.set_theme()
 sns.regplot(x='Generation', y='Fitness', data=df,
            order=2, ci=None).set(title='Avg Fitness Top 3 ')           
 plt.show()
