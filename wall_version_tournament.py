@@ -113,9 +113,9 @@ def sigmoid(x):
 
 def GenerateGenom(hidden_layer, W):
     if W == 1:
-        Weight = np.random.uniform(low = -5, high = 5, size = (hidden_layer, 5)) #(hidden_neurons, input_size)
+        Weight = np.random.uniform(low = -2, high = 2, size = (hidden_layer, 5)) #(hidden_neurons, input_size)
     if W == 2:
-        Weight = np.random.uniform(low = -5, high = 5, size = (2, hidden_layer)) #(Output_neurons, hidden_neurons)
+        Weight = np.random.uniform(low = -2, high = 2, size = (2, hidden_layer)) #(Output_neurons, hidden_neurons)
     return Weight
 
 def InitializeGeneration(popsize, hidden_layer):
@@ -216,9 +216,9 @@ def Mutate(robot_W1, robot_W2):
                 random0 = np.random.uniform(0,1)
                 random1 = np.random.uniform(0,1)
                 if random0 <= 0.2:      
-                    xxx[0, weight] = np.random.uniform(-5,5)
+                    xxx[0, weight] = np.random.uniform(-2,2)
                 if random1 <= 0.2:
-                    xxx[1, weight] = np.random.uniform(-5,5)
+                    xxx[1, weight] = np.random.uniform(-2,2)
                 
         xxx2 = np.copy(robot_W2[i])
         if mat_pick == 1:
@@ -226,9 +226,9 @@ def Mutate(robot_W1, robot_W2):
                 random0 = np.random.uniform(0,1)
                 random1 = np.random.uniform(0,1)
                 if random0 <= 0.2:
-                    xxx2[0, weight] = np.random.uniform(-5,5)
+                    xxx2[0, weight] = np.random.uniform(-2,2)
                 if random1 <= 0.2:
-                    xxx2[1, weight] = np.random.uniform(-5,5)
+                    xxx2[1, weight] = np.random.uniform(-2,2)
                     
         new_robots_W1.append(xxx)
         new_robots_W2.append(xxx2) 
@@ -315,6 +315,7 @@ def Simulate(current_generation_W1, current_generation_W2):
             
 
             if (world.distance(Point(x,y))<L/2):
+                print("dead")
                 break
             if ((goal.distance(Point(x,y))<L/2)):
                 print('WINNER')

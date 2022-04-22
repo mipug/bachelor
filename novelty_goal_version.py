@@ -167,6 +167,7 @@ def SelectTop(n, fitness, current_genW1, current_genW2):
     return best_current_generation_W1, best_current_generation_W2
 
 
+
 # NEW GENERATION
 
 def Mutate(robot_W1, robot_W2, n):
