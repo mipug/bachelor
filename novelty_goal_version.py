@@ -10,6 +10,7 @@ import numpy as np
 import filenames
 import sys
 from scipy.spatial import distance
+import filenames
 
 #np.random.seed(42)
 
@@ -32,7 +33,9 @@ walls = [ # the world is a quadratic arena with width W and height H
         ((5, 0), (3, -2)),
         ((-2.0, 3.5), (1, 2))]
 world = MultiLineString(walls)
-goal = Point(-4,-4)
+goal = Point(-4,-4) #easy
+#goal = Point(4, 2) #medium
+#goal = Point(4.5, -2) #hard
 
 
 # VARIABLES
@@ -47,8 +50,10 @@ q_all = [q_mid, q_mid_left, q_mid_right, q_left, q_right]
 
 input = 5 # 5 sensor + 1 bias
 hidden_size = 2
-popsize = 21
+popsize = 23
 old_robots = []
+Crossover = True
+novelty = False
 
 # FUNCTIONS
 
@@ -58,8 +63,8 @@ def startPoint():
     x = -4   # robot position in meters - x direction - positive to the right 
     y = 4  # robot position in meters - y direction - positive up
     
-    left_wheel_velocity =  np.random.uniform(-0.25, 0.25)   # robot left wheel velocity in radians/s
-    right_wheel_velocity =  np.random.uniform(-0.25, 0.25)  # robot right wheel velocity in radians/s
+    left_wheel_velocity =  np.random.uniform(-0.5, 0.5)   # robot left wheel velocity in radians/s
+    right_wheel_velocity =  np.random.uniform(-0.5, 0.5)  # robot right wheel velocity in radians/s
 
 def makeray(q, x, y):
     ray = LineString([(x, y), (x+cos(q)*10,y+sin(q)*10)])
@@ -112,9 +117,9 @@ def sigmoid(x):
 
 def GenerateGenom(hidden_layer, W):
     if W == 1:
-        Weight = np.random.uniform(low = -5, high = 5, size = (hidden_layer, 5)) #(hidden_neurons, input_size)
+        Weight = np.random.uniform(low = -3, high = 3, size = (hidden_layer, 5)) #(hidden_neurons, input_size)
     if W == 2:
-        Weight = np.random.uniform(low = -5, high = 5, size = (2, hidden_layer)) #(Output_neurons, hidden_neurons)
+        Weight = np.random.uniform(low = -3, high = 3, size = (2, hidden_layer)) #(Output_neurons, hidden_neurons)
     return Weight
 
 def InitializeGeneration(popsize, hidden_layer):
@@ -166,78 +171,121 @@ def SelectTop(n, fitness, current_genW1, current_genW2):
     best_current_generation_W2 = [current_genW2[idx] for idx in best_robots]
     return best_current_generation_W1, best_current_generation_W2
 
+def Tournament(fitness, W1, W2):
+    indeces = [i for i in range(23)] #list of indeces
+    new_W1 = [] #20 new robots to be returned and mutated
+    new_W2 = []
 
+    for i in range(20):
+        tournament = random.sample(indeces, 7) # 7 random indeces without duplication
+        fitness_tournament = [fitness[i] for i in tournament]  # the fitness of the 7 indeces
+
+        if Crossover == True:
+            pick = np.random.unifrom(0,1) # 90% chance of crossover
+            if pick <= 0.9:
+                top_fitness = np.argsort(fitness_tournament)[-1:]
+                w1_parent1, w2_parent1 = W1[top_fitness[0]], W2[top_fitness[0]]
+
+                tournament = random.sample(indeces, 7) # 7 random indeces without duplication
+                fitness_tournament = [fitness[i] for i in tournament]  # the fitness of the 7 indeces
+
+                top_fitness = np.argsort(fitness_tournament)[-1:]
+                w1_parent2, w2_parent2 = W1[top_fitness[0]], W2[top_fitness[0]]
+
+                w1, w2 = Crossover(w1_parent1, w2_parent1, w1_parent2, w2_parent2)
+
+                new_W1.append(w1)
+                new_W2.append(w2)
+            else:
+                top_fitness = np.argsort(fitness_tournament)[-1:]
+                w1, w2 = W1[top_fitness[0]], W2[top_fitness[0]]
+                new_W1.append(w1)
+                new_W2.append(w2)
+        else:
+            top_fitness = np.argsort(fitness_tournament)[-1:]
+            w1, w2 = W1[top_fitness[0]], W2[top_fitness[0]]
+            new_W1.append(w1)
+            new_W2.append(w2)
+
+    return new_W1, new_W2
+
+def Crossover(w1_parent1, w2_parent1, w1_parent2, w2_parent2):
+    pick = np.random.randint(2)
+    if pick == 0:
+        w1_child, w2_child = w1_parent1, w2_parent2
+    if pick == 1:
+        w1_child, w2_child = w1_parent2, w2_parent1
+
+    return w1_child, w2_child
 
 # NEW GENERATION
 
-def Mutate(robot_W1, robot_W2, n):
+def Mutate(robot_W1, robot_W2):
     # rand,om int 0 or 1
     # for each input robot, mutate it n times
     # return the arrays of new weights
     new_robots_W1 = []
     new_robots_W2 = []
     
-    for i in range(n):
-        xxx = np.copy(robot_W1)
+    for i in range(20):
+        xxx = np.copy(robot_W1[i])
         mat_pick = np.random.randint(2) #choose randomly if W1 or W2 should be mutated
         if mat_pick == 0: 
             for weight in range(xxx.shape[1]):
                 random0 = np.random.uniform(0,1)
                 random1 = np.random.uniform(0,1)
-                if random0 <= 0.4:      
-                    xxx[0, weight] = np.random.uniform(-5,5)
-                if random1 <= 0.4:
-                    xxx[1, weight] = np.random.uniform(-5,5)
+                if random0 <= 0.2:      
+                    xxx[0, weight] = np.random.uniform(-2,2)
+                if random1 <= 0.2:
+                    xxx[1, weight] = np.random.uniform(-2,2)
                 
-        xxx2 = np.copy(robot_W2)
+        xxx2 = np.copy(robot_W2[i])
         if mat_pick == 1:
             for weight in range(xxx2.shape[1]):
                 random0 = np.random.uniform(0,1)
                 random1 = np.random.uniform(0,1)
-                if random0 <= 0.4:
-                    xxx2[0, weight] = np.random.uniform(-5,5)
-                if random1 <= 0.4:
-                    xxx2[1, weight] = np.random.uniform(-5,5)
+                if random0 <= 0.2:
+                    xxx2[0, weight] = np.random.uniform(-2,2)
+                if random1 <= 0.2:
+                    xxx2[1, weight] = np.random.uniform(-2,2)
                     
         new_robots_W1.append(xxx)
         new_robots_W2.append(xxx2) 
     return new_robots_W1, new_robots_W2
 
-def NewGeneration(best_current_gen_W1, best_current_gen_W2, n):
-    print("same?", best_current_gen_W1)
-    new_gen_W1 = []
-    new_gen_W2 = []
-    for W1, W2 in zip(best_current_gen_W1, best_current_gen_W2): #Generates a batch of n mutated robots for every 'best robot' selected in selectTop
+def NewGeneration(fitness, W1, W2, best_current_gen_W1, best_current_gen_W2):
+    new_gen_W1 = [w1 for w1 in best_current_gen_W1]
+    new_gen_W2 = [w2 for w2 in best_current_gen_W2]
+    #Generates a batch of n mutated robots for every 'best robot' selected in selectTop
+    W1, W2 = Tournament(fitness, W1, W2)
+    new_W1, new_W2 = Mutate(W1, W2)
+        
+    for W1, W2 in zip(new_W1, new_W2): # for every robot weigts in returned batch, append them to the list of the new generation
         new_gen_W1.append(W1)
         new_gen_W2.append(W2)
-        n_new_W1, n_new_W2 = Mutate(W1, W2, n)
-        
-        for W1, W2 in zip(n_new_W1, n_new_W2): # for every robot weigts in returned batch, append them to the list of the new generation
-            #print('Success??: ')
-            new_gen_W1.append(W1)
-            new_gen_W2.append(W2)
     return new_gen_W1, new_gen_W2
 
 
 # RUN EXPERIMENT
-h = open('endpoints.csv', 'w')
+h = open(filenames.goal_endpoints, 'w')
 def RunExperiment(depth, popsize, hidden_size):
     # Initialize and run the first initialized generation
     first_generation_W1, first_generation_W2 = InitializeGeneration(popsize, hidden_size) 
     fitness_generation = np.copy(Simulate(first_generation_W1, first_generation_W2))
 
     cw1, cw2 = SelectTop(3, fitness_generation, first_generation_W1, first_generation_W2)
-    nw1, nw2 = NewGeneration(cw1, cw2, 6)
+    nw1, nw2 = NewGeneration(fitness_generation, first_generation_W1, first_generation_W2, cw1, cw2)
+    print(len(nw1))
     
     # make new generations 'depth' number of times and run simulation on them
     gen_depth = 1
     for i in range(depth):
-        print('depth: ', gen_depth)
+        print('depth: ', gen_depth, '\n')
         fitness_generation = np.copy(Simulate(nw1, nw2))
 
         cw1, cw2 = SelectTop(3, fitness_generation, nw1, nw2)
         gen_depth += 1
-        nw1, nw2 = NewGeneration(cw1, cw2, 6)
+        nw1, nw2 = NewGeneration(fitness_generation, nw1, nw2, cw1, cw2)
 
 
 
@@ -247,7 +295,7 @@ s = open(filenames.goal_fitness, 'w')
 
 def Simulate(current_generation_W1, current_generation_W2):
     robot_depth = 0
-    #fitness_generation = np.array([]) # collection of each robot's fitness
+    fitness_generation = np.array([]) # collection of each robot's fitness
     coordinates = []
     
     f = open(filenames.goal_coordinates, "w")
@@ -275,8 +323,8 @@ def Simulate(current_generation_W1, current_generation_W2):
             # new wheel velocity values
             Y = forwardPropagation(sensors, W1, W2)
             
-            y_norm_left = ((Y[0])/(1))*(0.25-(-0.25))+(-0.25) #range -0.25, 0.25
-            y_norm_right =((Y[1])/(1))*(0.25-(-0.25))+(-0.25)
+            y_norm_left = ((Y[0])/(1))*(0.5-(-0.5))+(-0.5) #range -0.25, 0.25
+            y_norm_right =((Y[1])/(1))*(0.5-(-0.5))+(-0.5)
             left_wheel_velocity, right_wheel_velocity = y_norm_left, y_norm_right
 
             simulationstep(left_wheel_velocity, right_wheel_velocity)
@@ -292,17 +340,22 @@ def Simulate(current_generation_W1, current_generation_W2):
         coordinates.append((x,y))
         h.write(str(x) + ',' + str(y) + '\n')
         print("Coordinates: ", coordinates)
-    fitness_generation = noveltyMetric(coordinates, 5)
+
+
+        if novelty == False: 
+            fitness_robot = Fitness(x,y)
+            fitness_generation = np.append(fitness_generation, fitness_robot) 
+            
+    if novelty == True: 
+        fitness_generation = noveltyMetric(coordinates, 5)
+    
     print("fitness: ", fitness_generation)
         # evaluation step
-
-        #fitness_robot = Fitness(x,y)
-        #fitness_generation = np.append(fitness_generation, fitness_robot) 
         
         
     f.close()
     return fitness_generation
 
 
-RunExperiment(depth = 50, popsize = popsize, hidden_size = hidden_size)
+RunExperiment(depth = 100, popsize = popsize, hidden_size = hidden_size)
 s.close()
