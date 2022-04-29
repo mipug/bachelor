@@ -18,8 +18,8 @@ coordinate_file = version + '_endpoints/' + ID + '_endpoints.csv'
 ## ENTER WHAT YOU WANT TO NAME THE NEW VARIATION
 
 ## wall_version files
-wall_fitness = '08a_fitness.csv'
-wall_coordinates = '08a_coordinates.csv'
+wall_fitness = '14e_fitness.csv'
+wall_coordinates = '14e_coordinates.csv'
 
 ## goal_version files
 goal_fitness = 'f_test.csv'
