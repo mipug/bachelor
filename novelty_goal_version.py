@@ -33,7 +33,7 @@ walls = [ # the world is a quadratic arena with width W and height H
         ((5, 0), (3, -2)),
         ((-2.0, 3.5), (1, 2))]
 world = MultiLineString(walls)
-goal = Point(-4,-4) #easy
+goal = Point(-4,4) #easy
 #goal = Point(4, 2) #medium
 #goal = Point(4.5, -2) #hard
 
@@ -61,7 +61,7 @@ def startPoint():
     global x, y, left_wheel_velocity, right_wheel_velocity
     
     x = -4   # robot position in meters - x direction - positive to the right 
-    y = 4  # robot position in meters - y direction - positive up
+    y = -4  # robot position in meters - y direction - positive up
     
     left_wheel_velocity =  np.random.uniform(-0.5, 0.5)   # robot left wheel velocity in radians/s
     right_wheel_velocity =  np.random.uniform(-0.5, 0.5)  # robot right wheel velocity in radians/s
@@ -334,7 +334,7 @@ def Simulate(current_generation_W1, current_generation_W2):
                 print("dead")
                 break
                 
-            if ((goal.distance(Point(x,y))<L/2)):
+            if ((goal.distance(Point(x,y))<L/2+0.2)):
                 print('WINNER! ', 'robot: ', robot_depth)
                 sys.exit()
         coordinates.append((x,y))

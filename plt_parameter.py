@@ -9,39 +9,67 @@ import pandas as pd
 import filenames
 import numpy
 
-
+sns.set_theme(color_codes=True)
 x = [i for i in range(101)]
 
 weight = ['5', '0.5', '1', '2', '3', '4']
+ver = ['a', 'b', 'c', 'd', 'e']
 w = 0
 
-for i in range(2,13,2): 
-    file_a = 'wall_fitness/0' + str(i) + 'a_fitness.csv'
-    file_b = 'wall_fitness/0' + str(i) + 'b_fitness.csv'
+y = [0 for i in range(101)]
+
+for i in range(5): 
+    file_a = 'wall_fitness/' + str('13') + ver[i] + '_fitness.csv' #crossover
     print(file_a)
+
+
     with open(file_a,'r') as csvfile:
 
         fitness = csv.reader(csvfile, delimiter = ',')
-        y = []
-        for row in fitness:
-            row = [float(i) for i in row]
-            y.append(np.average(row))
         
-    with open(file_b, 'r') as csvfile:
+        for row, i in zip(fitness, range(101)):
+            row = [float(i) for i in row]
+            y[i] += np.average(row)
+        
+for i in range(101):
+    y[i] = y[i]/5
+
+d = {'Generation': x, 'Fitness': y}
+df = pd.DataFrame(d)
+
+sns.regplot(x='Generation', y='Fitness', data=df,
+    lowess=True, scatter = True, label =('w = 3 : Crossover')).set(title='Parameter Search')          
+
+
+y = [0 for i in range(101)]
+
+for i in range(4):     
+    file_a = 'wall_fitness/' + str('14') + ver[i] + '_fitness.csv' #crossover   
+    with open(file_a, 'r') as csvfile:
 
         fitness = csv.reader(csvfile, delimiter = ',')
         for i, row in zip(range(len(y)), fitness):
             row = [float(i) for i in row]
-            y[i] = (y[i] + np.average(row))/2
+            y[i] += np.average(row)
 
-            
-        d = {'Generation': x, 'Fitness': y}
-        df = pd.DataFrame(d)
+for i in range(101):
+    y[i] = y[i]/4
 
-        sns.regplot(x='Generation', y='Fitness', data=df,
-                    order=2, scatter = True, label =('w = ' + weight[w])).set(title='No Crossover')           
-        plt.legend()
-        w += 1
+d = {'Generation': x, 'Fitness': y}
+df = pd.DataFrame(d)
+
+
+
+
+sns.regplot(x='Generation', y='Fitness', data=df,
+    lowess= True, scatter = True, label =('w = 3 : No crossover')).set(title='Parameter Search - 5 runs')    
+
+
+plt.ylim(0.15,0.55)           
+
+
+plt.legend()
+
 plt.show()
 
         
