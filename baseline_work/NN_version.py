@@ -45,7 +45,7 @@ q_left = 1
 q_right = -1
 q_all = [q_mid, q_mid_left, q_mid_right, q_left, q_right]
 
-left_wheel_velocity =  random()   # robot left wheel velocity in radians/s
+left_wheel_velocity =  random()  # robot left wheel velocity in radians/s
 right_wheel_velocity =  random()  # robot right wheel velocity in radians/s
 
 def makeray(q):
