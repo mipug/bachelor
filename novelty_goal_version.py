@@ -33,9 +33,9 @@ walls = [ # the world is a quadratic arena with width W and height H
         ((5, 0), (3, -2)),
         ((-2.0, 3.5), (1, 2))]
 world = MultiLineString(walls)
-goal = Point(-4,4) #easy
+#goal = Point(-4,4) #easy
 #goal = Point(4, 2) #medium
-#goal = Point(4.5, -2) #hard
+goal = Point(4.5, -2) #hard
 
 
 # VARIABLES
@@ -53,7 +53,7 @@ hidden_size = 2
 popsize = 23
 old_robots = []
 Crossover = True
-novelty = False
+novelty = True
 
 # FUNCTIONS
 
@@ -235,9 +235,9 @@ def Mutate(robot_W1, robot_W2):
                 random0 = np.random.uniform(0,1)
                 random1 = np.random.uniform(0,1)
                 if random0 <= 0.2:      
-                    xxx[0, weight] = np.random.uniform(-2,2)
+                    xxx[0, weight] = np.random.uniform(-3,3)
                 if random1 <= 0.2:
-                    xxx[1, weight] = np.random.uniform(-2,2)
+                    xxx[1, weight] = np.random.uniform(-3,3)
                 
         xxx2 = np.copy(robot_W2[i])
         if mat_pick == 1:
@@ -245,9 +245,9 @@ def Mutate(robot_W1, robot_W2):
                 random0 = np.random.uniform(0,1)
                 random1 = np.random.uniform(0,1)
                 if random0 <= 0.2:
-                    xxx2[0, weight] = np.random.uniform(-2,2)
+                    xxx2[0, weight] = np.random.uniform(-3,3)
                 if random1 <= 0.2:
-                    xxx2[1, weight] = np.random.uniform(-2,2)
+                    xxx2[1, weight] = np.random.uniform(-3,3)
                     
         new_robots_W1.append(xxx)
         new_robots_W2.append(xxx2) 
