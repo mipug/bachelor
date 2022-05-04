@@ -20,7 +20,7 @@ y = []
 c = []
 i = 0
 #with open(filenames.coordinate_file,'r') as csvfile:
-with open(filenames.coordinate_file,'r') as csvfile:
+with open("008a_endpoints.csv",'r') as csvfile:
     plots = csv.reader(csvfile, delimiter = ',')
       
     for row in plots:
@@ -31,12 +31,12 @@ with open(filenames.coordinate_file,'r') as csvfile:
         y.append(float(row[1]))
         c.append(i) #colors
   
-size = [0.5 for i in range(len(x))]
+size = [1 for i in range(len(x))]
 plt.xlim([-5,5])
 plt.ylim([-5,5])
 for line in world:
     plt.plot(*line.xy, color='black')     
 plt.scatter(x, y, s=size, c=c, cmap='viridis')
-plt.title('40000 simulated steps')
+#plt.title('40000 simulated steps')
 plt.legend()
 plt.show()

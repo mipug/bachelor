@@ -347,7 +347,7 @@ def Simulate(current_generation_W1, current_generation_W2):
             fitness_generation = np.append(fitness_generation, fitness_robot) 
             
     if novelty == True: 
-        fitness_generation = noveltyMetric(coordinates, 5)
+        fitness_generation = noveltyMetric(coordinates, 15)
     
     print("fitness: ", fitness_generation)
         # evaluation step
