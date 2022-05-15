@@ -43,7 +43,7 @@ sns.regplot(x='Generation', y='Fitness', data=df,
 
 y = [0 for i in range(101)]
 
-for i in range(4):     
+for i in range(5):     
     file_a = 'wall_fitness/' + str('14') + ver[i] + '_fitness.csv' #crossover   
     with open(file_a, 'r') as csvfile:
 
@@ -53,7 +53,7 @@ for i in range(4):
             y[i] += np.average(row)
 
 for i in range(101):
-    y[i] = y[i]/4
+    y[i] = y[i]/5
 
 d = {'Generation': x, 'Fitness': y}
 df = pd.DataFrame(d)
@@ -62,7 +62,7 @@ df = pd.DataFrame(d)
 
 
 sns.regplot(x='Generation', y='Fitness', data=df,
-    lowess= True, scatter = True, label =('w = 3 : No crossover')).set(title='Parameter Search - 5 runs')    
+    lowess= True, scatter = True, label =('w = 3 : No crossover')).set(title='Parameter Search')    
 
 
 plt.ylim(0.15,0.55)           
