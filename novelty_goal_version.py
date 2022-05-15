@@ -33,8 +33,13 @@ walls = [ # the world is a quadratic arena with width W and height H
         ((5, 0), (3, -2)),
         ((-2.0, 3.5), (1, 2))]
 world = MultiLineString(walls)
+<<<<<<< HEAD
 goal = Point(-4,4) #easy
 #goal = Point(4, 2) #medium
+=======
+#goal = Point(-4,4) #easy
+goal = Point(4, 2) #medium
+>>>>>>> 66fc39905ddced86218a859f3300effceaff2922
 #goal = Point(4.5, -2) #hard
 
 

@@ -22,6 +22,12 @@ wall_fitness = '14e_fitness.csv'
 wall_coordinates = '14e_coordinates.csv'
 
 ## goal_version files
+<<<<<<< HEAD
 goal_fitness = '007e_fitness.csv'
 goal_coordinates = '007e_coordinates.csv'
 goal_endpoints = '007e_endpoints.csv'
+=======
+goal_fitness = '009f_fitness.csv'
+goal_coordinates = '009f_coordinates.csv'
+goal_endpoints = '009f_endpoints.csv'
+>>>>>>> 66fc39905ddced86218a859f3300effceaff2922
