@@ -22,6 +22,6 @@ wall_fitness = '14e_fitness.csv'
 wall_coordinates = '14e_coordinates.csv'
 
 ## goal_version files
-goal_fitness = '012c_fitness.csv'
-goal_coordinates = '012c_coordinates.csv'
-goal_endpoints = '012c_endpoints.csv'
+goal_fitness = '009f_fitness.csv'
+goal_coordinates = '009f_coordinates.csv'
+goal_endpoints = '009f_endpoints.csv'

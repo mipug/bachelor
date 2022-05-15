@@ -34,8 +34,8 @@ walls = [ # the world is a quadratic arena with width W and height H
         ((-2.0, 3.5), (1, 2))]
 world = MultiLineString(walls)
 #goal = Point(-4,4) #easy
-#goal = Point(4, 2) #medium
-goal = Point(4.5, -2) #hard
+goal = Point(4, 2) #medium
+#goal = Point(4.5, -2) #hard
 
 
 # VARIABLES
@@ -53,7 +53,7 @@ hidden_size = 2
 popsize = 23
 old_robots = []
 Crossover = True
-novelty = True
+novelty = False
 
 # FUNCTIONS
 

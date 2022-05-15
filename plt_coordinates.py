@@ -20,7 +20,8 @@ y = []
 c = []
 i = 0
 #with open(filenames.coordinate_file,'r') as csvfile:
-with open("008a_endpoints.csv",'r') as csvfile:
+with open("goal_endpoints/010d_endpoints.csv",'r') as csvfile:
+#with open("009_coordinates.csv",'r') as csvfile:
     plots = csv.reader(csvfile, delimiter = ',')
       
     for row in plots:
